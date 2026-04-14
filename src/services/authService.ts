@@ -44,7 +44,6 @@ export async function verifyUser(email: string, password: string) {
       // Create demo family
       const newFamily = await SupabaseService.createFamily({
         name: "Družina Novak",
-        created_by: "", // Will be updated after profile creation
         invite_code: user.family_invite_code,
       });
       
@@ -110,7 +109,6 @@ export async function createFamily(name: string, creatorEmail: string, creatorNa
   
   const family = await SupabaseService.createFamily({
     name,
-    created_by: "",
     invite_code: inviteCode,
   });
   
