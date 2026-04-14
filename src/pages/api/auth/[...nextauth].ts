@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             family_id: user.family_id,
-            role: user.role,
+            role: user.role as "super_admin" | "parent" | "child",
             permissions: user.permissions?.map(p => p.permission_name) || [],
           };
         } catch (error) {
