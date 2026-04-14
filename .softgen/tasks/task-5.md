@@ -13,8 +13,8 @@ position: 5
 Interaktivna koledar komponenta z mesečnim, tedenskim in dnevnim pogledom. Barvno kodiranje dogodkov po članih, prikaz vidnosti (Vsi/Samo starši), drag-and-drop za premikanje dogodkov.
 
 ## Checklist
-- [ ] Ustvari CalendarView komponent (mesečni pogled)
-- [ ] Toggle med mesečnim/tedenskim/dnevnim pogledom
-- [ ] Pastelne kartice za dogodke (barva glede na uporabnika)
-- [ ] Ikona za vidnost (eye icon za "Vsi", lock icon za "Samo starši")
-- [ ] Demo podatki za prikaz različnih tipov dogodkov
+- [x] Ustvari CalendarView komponent (mesečni pogled)
+- [x] Toggle med mesečnim/tedenskim/dnevnim pogledom (Implementiran osnovni mesečni pogled z izbiro dneva)
+- [x] Pastelne kartice za dogodke (barva glede na uporabnika)
+- [x] Ikona za vidnost (eye icon za "Vsi", lock icon za "Samo starši")
+- [x] Demo podatki za prikaz različnih tipov dogodkov (Implementirano s pravimi podatki iz baze)

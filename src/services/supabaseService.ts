@@ -10,6 +10,7 @@ type Permission = Database["public"]["Tables"]["permissions"]["Row"];
 // Use auto-generated Insert types for type safety
 type FamilyInsert = Database["public"]["Tables"]["families"]["Insert"];
 type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
 
 export interface FamilyCreateInput {
   name: string;
@@ -170,5 +171,67 @@ export class SupabaseService {
       return null;
     }
     return data;
+  }
+
+  static async getEvents(familyId: string, role: string): Promise<Event[] | null> {
+    let query = supabase
+      .from("events")
+      .select("*")
+      .eq("family_id", familyId);
+    
+    // Only parents and admins can see private events
+    if (role === "child") {
+      query = query.eq("visibility_level", "all");
+    }
+
+    const { data, error } = await query.order("start_time", { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching events:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async createEvent(input: EventInsert): Promise<Event | null> {
+    const { data, error } = await supabase
+      .from("events")
+      .insert(input)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error creating event:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async updateEvent(eventId: string, input: Partial<EventInsert>): Promise<Event | null> {
+    const { data, error } = await supabase
+      .from("events")
+      .update(input)
+      .eq("id", eventId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating event:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async deleteEvent(eventId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", eventId);
+    
+    if (error) {
+      console.error("Error deleting event:", error);
+      return false;
+    }
+    return true;
   }
 }
