@@ -82,16 +82,20 @@ export const authOptions: NextAuthOptions = {
         token.family_id = user.family_id;
         token.role = user.role;
         token.permissions = user.permissions;
+        token.family_name = user.family_name;
       }
       return token;
     },
     async session({ session, token }) {
       // Add custom fields from JWT to session
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.family_id = token.family_id as string;
-        session.user.role = token.role as "super_admin" | "parent" | "child";
-        session.user.permissions = token.permissions as string[];
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.family_id = token.family_id;
+        session.user.role = token.role;
+        session.user.permissions = token.permissions;
+        session.user.family_name = token.family_name;
       }
       return session;
     },

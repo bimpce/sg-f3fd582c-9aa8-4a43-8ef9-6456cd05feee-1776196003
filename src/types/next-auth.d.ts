@@ -8,6 +8,7 @@ declare module "next-auth" {
       email: string;
       name: string;
       family_id: string;
+      family_name?: string;
       role: "super_admin" | "parent" | "child";
       permissions: string[];
     };
@@ -18,6 +19,7 @@ declare module "next-auth" {
     email: string;
     name: string;
     family_id: string;
+    family_name?: string;
     role: "super_admin" | "parent" | "child";
     permissions: string[];
   }
@@ -26,7 +28,10 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
+    email: string;
+    name: string;
     family_id: string;
+    family_name?: string;
     role: "super_admin" | "parent" | "child";
     permissions: string[];
   }
