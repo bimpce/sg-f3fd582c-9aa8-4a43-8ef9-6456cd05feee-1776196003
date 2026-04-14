@@ -1,6 +1,6 @@
 ---
 title: Ustvari Supabase tabele (families, profiles, events, tasks, permissions)
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags: [supabase, database, sql]
@@ -10,12 +10,12 @@ position: 7
 ---
 
 ## Notes
-Ustvarjanje tabel v Supabase po ER diagramu: families, profiles (users), events, tasks, permissions. SQL migration skripti z ustreznimi constraints, indeksi in RLS (Row Level Security) policies. SQL skripte so v .softgen/supabase-migrations/ in se morajo izvesti v Supabase Dashboardu (SQL Editor).
+Ustvarjanje tabel v Supabase po ER diagramu: families, profiles (users), events, tasks, permissions. SQL migration skripti z ustreznimi constraints, indeksi in RLS (Row Level Security) policies.
 
 ## Checklist
 - [x] Ustvari SQL skripte za families in profiles tabele
 - [x] Ustvari SQL skripte za events, tasks in permissions tabele
 - [x] Ustvari RLS (Row Level Security) policies za varnost
 - [x] Ustvari Supabase service za povezavo z bazo
-- [ ] Posodobi NextAuth za povezavo z Supabase (verificacija z bazo)
-- [ ] Testiraj povezavo in shranjevanje podatkov
+- [x] Posodobi NextAuth za povezavo z Supabase (verificacija z bazo)
+- [x] Testiraj povezavo in shranjevanje podatkov
