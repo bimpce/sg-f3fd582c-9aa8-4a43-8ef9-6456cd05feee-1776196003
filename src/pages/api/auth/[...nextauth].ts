@@ -1,36 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-// MOCK DATABASE - Replace with real database queries
-const mockUsers = [
-  {
-    id: "1",
-    email: "super@family.com",
-    password: "demo123", // In production: use bcrypt.compare()
-    name: "Ana Novak",
-    family_id: "family_001",
-    role: "super_admin" as const,
-    permissions: ["CAN_CREATE_EVENT", "CAN_EDIT_OTHERS_EVENTS", "CAN_SEE_PRIVATE", "CAN_DELETE", "CAN_INVITE"],
-  },
-  {
-    id: "2",
-    email: "parent@family.com",
-    password: "demo123",
-    name: "Marko Novak",
-    family_id: "family_001",
-    role: "parent" as const,
-    permissions: ["CAN_CREATE_EVENT", "CAN_EDIT_OTHERS_EVENTS", "CAN_SEE_PRIVATE"],
-  },
-  {
-    id: "3",
-    email: "child@family.com",
-    password: "demo123",
-    name: "Lara Novak",
-    family_id: "family_001",
-    role: "child" as const,
-    permissions: [],
-  },
-];
+import { verifyUser } from "@/services/authService";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -45,24 +15,25 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // MOCK: Find user in mock database
-        const user = mockUsers.find(
-          (u) => u.email === credentials.email && u.password === credentials.password
-        );
+        try {
+          const user = await verifyUser(credentials.email, credentials.password);
+          
+          if (!user) {
+            return null;
+          }
 
-        if (!user) {
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            family_id: user.family_id,
+            role: user.role,
+            permissions: user.permissions?.map(p => p.permission_name) || [],
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
           return null;
         }
-
-        // Return user object (will be passed to jwt callback)
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          family_id: user.family_id,
-          role: user.role,
-          permissions: user.permissions,
-        };
       },
     }),
   ],
