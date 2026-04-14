@@ -7,9 +7,12 @@ type Event = Database["public"]["Tables"]["events"]["Row"];
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 type Permission = Database["public"]["Tables"]["permissions"]["Row"];
 
+// Use auto-generated Insert types for type safety
+type FamilyInsert = Database["public"]["Tables"]["families"]["Insert"];
+type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+
 export interface FamilyCreateInput {
   name: string;
-  created_by: string;
   invite_code: string;
 }
 
@@ -24,7 +27,7 @@ export class SupabaseService {
   static async createFamily(input: FamilyCreateInput): Promise<Family | null> {
     const { data, error } = await supabase
       .from("families")
-      .insert(input)
+      .insert(input as FamilyInsert)
       .select()
       .single();
     
@@ -52,7 +55,7 @@ export class SupabaseService {
   static async createProfile(input: ProfileCreateInput): Promise<Profile | null> {
     const { data, error } = await supabase
       .from("profiles")
-      .insert(input)
+      .insert(input as ProfileInsert)
       .select()
       .single();
     
