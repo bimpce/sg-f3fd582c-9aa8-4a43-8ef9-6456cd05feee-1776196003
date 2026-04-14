@@ -18,6 +18,7 @@ export interface FamilyCreateInput {
 }
 
 export interface ProfileCreateInput {
+  id: string;
   email: string;
   name: string;
   family_id?: string;

@@ -8,8 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
+import { createFamily, joinFamily } from "@/services/authService";
+import { useRouter } from "next/router";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +35,15 @@ export default function RegisterPage() {
     setSuccess("");
     setIsLoading(true);
 
-    // MOCK: Simulate API call
-    setTimeout(() => {
-      setSuccess(`Družina "${familyName}" je bila ustvarjena! Vaša družinska koda: FAM123. Uporabite jo za povabilo članov.`);
+    try {
+      const result = await createFamily(familyName, adminEmail, adminPassword, adminName);
+      setSuccess(`Družina "${result.family.name}" je bila ustvarjena! Vaša družinska koda: ${result.inviteCode}. Uporabite jo za povabilo članov. Preusmerjam na prijavo...`);
+      setTimeout(() => router.push("/auth/login"), 3000);
+    } catch (err: any) {
+      setError(err.message || "Prišlo je do napake pri ustvarjanju družine.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleJoinFamily = async (e: React.FormEvent) => {
@@ -45,16 +52,15 @@ export default function RegisterPage() {
     setSuccess("");
     setIsLoading(true);
 
-    // MOCK: Simulate API call
-    setTimeout(() => {
-      if (familyCode.toUpperCase() === "FAM123") {
-        setSuccess("Uspešno ste se pridružili družini! Preusmerjam na prijavo...");
-        setTimeout(() => window.location.href = "/auth/login", 2000);
-      } else {
-        setError("Neveljavna družinska koda. Preverite kodo in poskusite ponovno.");
-      }
+    try {
+      await joinFamily(familyCode, joinEmail, joinPassword, joinName);
+      setSuccess("Uspešno ste se registrirali! Preusmerjam na prijavo...");
+      setTimeout(() => router.push("/auth/login"), 2000);
+    } catch (err: any) {
+      setError(err.message || "Prišlo je do napake pri pridruževanju družini.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -203,9 +209,6 @@ export default function RegisterPage() {
                       disabled={isLoading}
                       maxLength={6}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Vnesite 6-mestno kodo, ki ste jo prejeli od upravitelja družine
-                    </p>
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>

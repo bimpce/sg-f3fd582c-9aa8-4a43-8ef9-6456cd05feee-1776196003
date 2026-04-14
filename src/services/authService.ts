@@ -1,177 +1,143 @@
 import { SupabaseService } from "./supabaseService";
 import { supabase } from "@/integrations/supabase/client";
 
-// Demo users for development (will be replaced with real Supabase Auth)
-export const DEMO_USERS = [
-  {
-    email: "super@family.com",
-    password: "demo123",
-    name: "Ana Novak",
-    family_invite_code: "FAMDEMO",
-    role: "super_admin" as const,
-  },
-  {
-    email: "parent@family.com",
-    password: "demo123",
-    name: "Marko Novak",
-    family_invite_code: "FAMDEMO",
-    role: "parent" as const,
-  },
-  {
-    email: "child@family.com",
-    password: "demo123",
-    name: "Luka Novak",
-    family_invite_code: "FAMDEMO",
-    role: "child" as const,
-  },
-];
-
 /**
- * Demo authentication for development
- * In production, use Supabase Auth (email/password or OAuth)
+ * Verifies user credentials using Supabase Auth
  */
 export async function verifyUser(email: string, password: string) {
-  const user = DEMO_USERS.find((u) => u.email === email && u.password === password);
-  if (!user) return null;
-  
-  // Get user profile from Supabase
-  const profile = await SupabaseService.getProfileByEmail(email);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    console.error("Supabase auth error:", error);
+    return null;
+  }
+
+  // Get user profile from Supabase profiles table
+  const profile = await SupabaseService.getProfileById(data.user.id);
   
   if (!profile) {
-    // Create demo user profile
-    const family = await SupabaseService.getFamilyByInviteCode(user.family_invite_code);
-    if (!family) {
-      // Create demo family
-      const newFamily = await SupabaseService.createFamily({
-        name: "Družina Novak",
-        invite_code: user.family_invite_code,
-      });
-      
-      if (!newFamily) throw new Error("Napaka pri ustvarjanju družine");
-      
-      const newProfile = await SupabaseService.createProfile({
-        email: user.email,
-        name: user.name,
-        family_id: newFamily.id,
-        role: user.role,
-      });
-      
-      if (!newProfile) throw new Error("Napaka pri ustvarjanju profila");
-      
-      // Set permissions for demo users
-      await setDemoPermissions(newProfile.id, newFamily.id, user.role);
-      
-      return {
-        id: newProfile.id,
-        email: newProfile.email,
-        name: newProfile.name,
-        family_id: newFamily.id,
-        role: newProfile.role,
-        permissions: await getPermissionsForRole(user.role),
-      };
-    }
-    
-    // Create profile with existing family
-    const newProfile = await SupabaseService.createProfile({
-      email: user.email,
-      name: user.name,
-      family_id: family.id,
-      role: user.role,
-    });
-    
-    if (!newProfile) throw new Error("Napaka pri ustvarjanju profila");
-    
-    await setDemoPermissions(newProfile.id, family.id, user.role);
-    
-    return {
-      id: newProfile.id,
-      email: newProfile.email,
-      name: newProfile.name,
-      family_id: family.id,
-      role: newProfile.role,
-      permissions: await getPermissionsForRole(user.role),
-    };
+    console.error("Profile not found for user:", data.user.id);
+    return null;
   }
-  
-  // Return existing profile
+
+  // Get family info
+  const family = profile.family_id ? await supabase
+    .from("families")
+    .select("name")
+    .eq("id", profile.family_id)
+    .single() : null;
+
+  // Return formatted user for NextAuth
   return {
     id: profile.id,
     email: profile.email,
     name: profile.name,
     family_id: profile.family_id || "",
-    role: profile.role,
+    family_name: family?.data?.name || "Družina",
+    role: profile.role || "child",
     permissions: await SupabaseService.getUserPermissions(profile.id),
   };
 }
 
-export async function createFamily(name: string, creatorEmail: string, creatorName: string) {
-  const inviteCode = `FAM${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-  
+/**
+ * Creates a new family and a super_admin user
+ */
+export async function createFamily(name: string, email: string, password: string, userName: string) {
+  // 1. Sign up user in Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: userName,
+      }
+    }
+  });
+
+  if (authError || !authData.user) {
+    throw new Error(authError?.message || "Napaka pri registraciji uporabnika");
+  }
+
+  // 2. Create family
+  const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   const family = await SupabaseService.createFamily({
     name,
     invite_code: inviteCode,
   });
-  
-  if (!family) throw new Error("Napaka pri ustvarjanju družine");
-  
+
+  if (!family) {
+    throw new Error("Napaka pri ustvarjanju družine");
+  }
+
+  // 3. Create profile
   const profile = await SupabaseService.createProfile({
-    email: creatorEmail,
-    name: creatorName,
+    id: authData.user.id,
+    email,
+    name: userName,
     family_id: family.id,
     role: "super_admin",
   });
-  
-  if (!profile) throw new Error("Napaka pri ustvarjanju profila");
-  
-  await setDemoPermissions(profile.id, family.id, "super_admin");
-  
+
+  if (!profile) {
+    throw new Error("Napaka pri ustvarjanju profila");
+  }
+
+  // 4. Set initial permissions
+  const permissions = [
+    "CAN_CREATE_EVENT",
+    "CAN_EDIT_OTHERS_EVENTS",
+    "CAN_SEE_PRIVATE",
+    "CAN_DELETE",
+    "CAN_INVITE",
+  ];
+
+  for (const perm of permissions) {
+    await SupabaseService.setPermission(profile.id, family.id, perm, true);
+  }
+
   return { family, profile, inviteCode };
 }
 
-export async function joinFamily(inviteCode: string, email: string, name: string, role: "parent" | "child") {
+/**
+ * Joins an existing family
+ */
+export async function joinFamily(inviteCode: string, email: string, password: string, userName: string) {
+  // 1. Check if family exists
   const family = await SupabaseService.getFamilyByInviteCode(inviteCode);
-  if (!family) throw new Error("Neveljavna koda za pridružitev");
-  
-  const existingProfile = await SupabaseService.getProfileByEmail(email);
-  if (existingProfile) throw new Error("Email je že registriran");
-  
-  const profile = await SupabaseService.createProfile({
+  if (!family) {
+    throw new Error("Neveljavna družinska koda");
+  }
+
+  // 2. Sign up user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
-    name,
-    family_id: family.id,
-    role,
+    password,
+    options: {
+      data: {
+        full_name: userName,
+      }
+    }
   });
-  
-  if (!profile) throw new Error("Napaka pri ustvarjanju profila");
-  
-  await setDemoPermissions(profile.id, family.id, role);
-  
+
+  if (authError || !authData.user) {
+    throw new Error(authError?.message || "Napaka pri registraciji uporabnika");
+  }
+
+  // 3. Create profile as child by default (admin can upgrade later)
+  const profile = await SupabaseService.createProfile({
+    id: authData.user.id,
+    email,
+    name: userName,
+    family_id: family.id,
+    role: "child",
+  });
+
+  if (!profile) {
+    throw new Error("Napaka pri ustvarjanju profila");
+  }
+
   return { family, profile };
-}
-
-async function setDemoPermissions(userId: string, familyId: string, role: "super_admin" | "parent" | "child") {
-  const permissions = await getPermissionsForRole(role);
-  
-  for (const permission of permissions) {
-    await SupabaseService.setPermission(userId, familyId, permission, true);
-  }
-}
-
-async function getPermissionsForRole(role: "super_admin" | "parent" | "child") {
-  switch (role) {
-    case "super_admin":
-      return [
-        "CAN_CREATE_EVENT",
-        "CAN_EDIT_OTHERS_EVENTS",
-        "CAN_SEE_PRIVATE",
-        "CAN_DELETE",
-        "CAN_INVITE",
-      ];
-    case "parent":
-      return ["CAN_CREATE_EVENT", "CAN_EDIT_OTHERS_EVENTS", "CAN_SEE_PRIVATE"];
-    case "child":
-      return [];
-    default:
-      return [];
-  }
 }
