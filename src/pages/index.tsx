@@ -7,7 +7,7 @@ import { AddButton } from "@/components/AddButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, CheckSquare, Plus, Settings, Eye, Lock } from "lucide-react";
+import { Calendar as CalendarIcon, CheckSquare, Plus, Settings, Eye, Lock, Settings2 } from "lucide-react";
 import Link from "next/link";
 
 interface Event {
@@ -115,9 +115,16 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => router.push("/profile")}>
-                  <Settings className="w-5 h-5 text-muted-foreground" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {(userRole === "super_admin" || userRole === "parent") && (
+                    <Button variant="ghost" size="icon" onClick={() => router.push("/settings/members")}>
+                      <Settings2 className="w-5 h-5 text-muted-foreground" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => router.push("/profile")}>
+                    <Settings className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>

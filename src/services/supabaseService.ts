@@ -105,6 +105,35 @@ export class SupabaseService {
     return data;
   }
 
+  static async getFamilyMembersWithPermissions(familyId: string) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        *,
+        permissions (*)
+      `)
+      .eq("family_id", familyId);
+
+    if (error) {
+      console.error("Error fetching family members with permissions:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async updateMemberRole(userId: string, role: "super_admin" | "parent" | "child"): Promise<boolean> {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role })
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Error updating member role:", error);
+      return false;
+    }
+    return true;
+  }
+
   static async getUserPermissions(userId: string): Promise<Permission[] | null> {
     const { data, error } = await supabase
       .from("permissions")
