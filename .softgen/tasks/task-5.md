@@ -1,6 +1,6 @@
 ---
 title: Koledar komponenta s pastelnimi kartami
-status: todo
+status: in_progress
 priority: medium
 type: feature
 tags: [koledar, ui, komponente]
