@@ -1,6 +1,6 @@
 ---
 title: Arhitekturna dokumentacija in ER diagram
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags: [dokumentacija, arhitektura, baza]
