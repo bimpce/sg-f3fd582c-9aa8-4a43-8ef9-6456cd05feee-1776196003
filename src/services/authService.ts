@@ -1,4 +1,3 @@
-<![CDATA
 import { SupabaseService } from "./supabaseService";
 
 export const MOCK_USERS = [
@@ -110,4 +109,3 @@ export async function getInitialPermissions(role: "super_admin" | "parent" | "ch
       return [];
   }
 }
-]]>
