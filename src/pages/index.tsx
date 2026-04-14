@@ -1,9 +1,14 @@
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { BottomNav } from "@/components/BottomNav";
 import { AddButton } from "@/components/AddButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Eye, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, CheckSquare, Plus, Settings, Eye, Lock } from "lucide-react";
+import Link from "next/link";
 
 interface Event {
   id: string;
@@ -15,8 +20,38 @@ interface Event {
 }
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    if (status === "unauthenticated" && mounted) {
+      router.push("/auth/login");
+    }
+  }, [status, router, mounted]);
+
+  if (!mounted || status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Nalaganje...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
   const today = new Date();
   const monthName = today.toLocaleDateString("sl-SI", { month: "long", year: "numeric" });
+  const userName = session.user?.name || "Družinski član";
+  const userRole = session.user?.role || "child";
+  const familyName = session.user?.family_name || "Družina";
 
   const demoEvents: Event[] = [
     {
@@ -45,23 +80,67 @@ export default function HomePage() {
     },
   ];
 
+  const roleBadgeColor = {
+    super_admin: "bg-purple-100 text-purple-800",
+    parent: "bg-blue-100 text-blue-800",
+    child: "bg-green-100 text-green-800",
+  } as const;
+
   return (
     <>
       <SEO
-        title="FamilySync - Družinski Koledar"
-        description="Organizirajte družinske dogodke in naloge z enostavnim sodelovalnim koledarjem."
+        title="FamilySync - Doma"
+        description="Družinski koledar in opomniki"
       />
 
-      <div className="min-h-screen pb-24 pt-6">
+      <div className="min-h-screen pb-24 pt-6 bg-background">
         <div className="container max-w-2xl">
-          {/* Header */}
+          {/* Header z uporabniškim profilom */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Pozdravljena, Ana! 👋
-            </h1>
-            <p className="text-muted-foreground">
-              Danes imaš 3 dogodke
-            </p>
+            <Card className="p-6 bg-card border-border shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-foreground mb-1">
+                    Pozdravljena, {userName}! 👋
+                  </h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={roleBadgeColor[userRole as keyof typeof roleBadgeColor] || "bg-gray-100 text-gray-800"}>
+                      {userRole === "super_admin" ? "Super-Admin" : userRole === "parent" ? "Starš" : "Otrok"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {familyName}
+                    </span>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => router.push("/profile")}>
+                  <Settings className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2 bg-card border-border hover:bg-accent/10"
+              onClick={() => router.push("/calendar")}
+            >
+              <CalendarIcon className="w-6 h-6 text-primary" />
+              <span className="text-sm font-medium">Koledar</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2 bg-card border-border hover:bg-accent/10"
+              onClick={() => router.push("/tasks")}
+            >
+              <CheckSquare className="w-6 h-6 text-accent" />
+              <span className="text-sm font-medium">Naloge</span>
+            </Button>
           </div>
 
           {/* Mini koledar pregled */}
