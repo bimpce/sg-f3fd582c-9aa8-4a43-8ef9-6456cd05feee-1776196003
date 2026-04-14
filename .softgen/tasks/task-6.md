@@ -1,6 +1,6 @@
 ---
 title: NextAuth.js setup z family_id povezavo
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags: [auth, nextauth, backend]
@@ -17,6 +17,6 @@ Implementacija NextAuth.js avtentikacijskega sistema z JWT session strategijo. C
 - [x] Kreacija API route /api/auth/[...nextauth].ts
 - [x] Konfiguracija JWT session z custom polji (family_id, role, permissions)
 - [x] TypeScript types za NextAuth (next-auth.d.ts)
-- [ ] SessionProvider wrapper v _app.tsx
-- [ ] Login page komponenta (/pages/auth/login.tsx)
-- [ ] Register page z družinsko kodo (/pages/auth/register.tsx)
+- [x] SessionProvider wrapper v _app.tsx
+- [x] Login page komponenta (/pages/auth/login.tsx)
+- [x] Register page z družinsko kodo (/pages/auth/register.tsx)

@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Manjkajoči email ali geslo");
+          return null;
         }
 
         // MOCK: Find user in mock database
@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!user) {
-          throw new Error("Napačen email ali geslo");
+          return null;
         }
 
         // Return user object (will be passed to jwt callback)
