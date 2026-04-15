@@ -163,7 +163,9 @@ export default function CalendarPage() {
   };
 
   const renderSelectedDayEvents = () => {
-    const dayEvents = events.filter(event => isSameDay(parseISO(event.start_time), selectedDate));
+    const eventsForSelectedDay = selectedDate 
+      ? events.filter((e) => isSameDay(new Date(e.start_time), selectedDate))
+      : [];
     
     return (
       <div className="px-4 py-6 space-y-4">
@@ -177,12 +179,12 @@ export default function CalendarPage() {
           </Button>
         </div>
 
-        {dayEvents.length === 0 ? (
+        {eventsForSelectedDay.length === 0 ? (
           <Card className="p-8 text-center border-dashed border-2 bg-muted/20">
             <p className="text-muted-foreground italic">Ni dogodkov za ta dan.</p>
           </Card>
         ) : (
-          dayEvents.map((event) => (
+          eventsForSelectedDay.map((event) => (
             <Card key={event.id} className="p-4 border-l-4 shadow-sm" style={{ borderLeftColor: event.color }}>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
