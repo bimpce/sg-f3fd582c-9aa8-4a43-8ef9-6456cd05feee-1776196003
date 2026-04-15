@@ -112,14 +112,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
-                  <SlidersHorizontal className="w-5 h-5" />
-                </button>
-                <button className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
-                  <Settings className="w-5 h-5" />
-                </button>
-              </div>
             </div>
           </Card>
 
