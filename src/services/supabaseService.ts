@@ -4,327 +4,115 @@ import type { Database } from "@/integrations/supabase/types";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Family = Database["public"]["Tables"]["families"]["Row"];
 type Event = Database["public"]["Tables"]["events"]["Row"];
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+type Reminder = Database["public"]["Tables"]["reminders"]["Row"];
+type Category = Database["public"]["Tables"]["categories"]["Row"];
 type Permission = Database["public"]["Tables"]["permissions"]["Row"];
 
-// Use auto-generated Insert types for type safety
 type FamilyInsert = Database["public"]["Tables"]["families"]["Insert"];
 type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
-type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
-
-export interface FamilyCreateInput {
-  name: string;
-  invite_code: string;
-}
-
-export interface ProfileCreateInput {
-  id: string;
-  email: string;
-  name: string;
-  family_id?: string;
-  role: "super_admin" | "parent" | "child";
-}
+type ReminderInsert = Database["public"]["Tables"]["reminders"]["Insert"];
+type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
 
 export class SupabaseService {
-  static async createFamily(input: FamilyCreateInput): Promise<Family | null> {
-    const { data, error } = await supabase
-      .from("families")
-      .insert(input as FamilyInsert)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error creating family:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async getFamilyByInviteCode(inviteCode: string): Promise<Family | null> {
-    const { data, error } = await supabase
-      .from("families")
-      .select("*")
-      .eq("invite_code", inviteCode)
-      .single();
-    
-    if (error) {
-      console.error("Error fetching family by invite code:", error);
-      return null;
-    }
+  // --- AUTH & PROFILE ---
+  static async createFamily(input: FamilyInsert): Promise<Family | null> {
+    const { data, error } = await supabase.from("families").insert(input).select().single();
+    if (error) return null;
     return data;
   }
 
   static async getFamilyById(id: string): Promise<Family | null> {
-    const { data, error } = await supabase
-      .from("families")
-      .select("*")
-      .eq("id", id)
-      .single();
-    
-    if (error) {
-      console.error("Error fetching family by id:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async createProfile(input: ProfileCreateInput): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert(input as ProfileInsert)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error creating profile:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async getProfileByEmail(email: string): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("email", email)
-      .single();
-    
-    if (error) {
-      return null;
-    }
-    return data;
+    const { data, error } = await supabase.from("families").select("*").eq("id", id).single();
+    return error ? null : data;
   }
 
   static async getProfileById(id: string): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", id)
-      .single();
-    
-    if (error) {
-      return null;
-    }
-    return data;
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", id).single();
+    return error ? null : data;
   }
 
   static async updateProfile(userId: string, input: { name?: string }): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .update(input)
-      .eq("id", userId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating profile:", error);
-      return null;
-    }
-    return data;
+    const { data, error } = await supabase.from("profiles").update(input).eq("id", userId).select().single();
+    return error ? null : data;
   }
 
   static async getFamilyMembers(familyId: string): Promise<Profile[] | null> {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("family_id", familyId);
-    
-    if (error) {
-      console.error("Error fetching family members:", error);
-      return null;
-    }
-    return data;
+    const { data, error } = await supabase.from("profiles").select("*").eq("family_id", familyId);
+    return error ? null : data;
   }
 
-  static async getFamilyMembersWithPermissions(familyId: string) {
+  static async setPermission(userId: string, familyId: string, permissionName: string, granted: boolean): Promise<any> {
+    const { data, error } = await supabase.from("permissions").upsert({
+      user_id: userId,
+      family_id: familyId,
+      permission_name: permissionName as any,
+      granted,
+    }).select().single();
+    return error ? null : data;
+  }
+
+  // --- CATEGORIES ---
+  static async getCategories(familyId: string): Promise<Category[] | null> {
     const { data, error } = await supabase
-      .from("profiles")
+      .from("categories")
+      .select("*")
+      .eq("family_id", familyId)
+      .order("name", { ascending: true });
+    return error ? null : data;
+  }
+
+  static async createCategory(input: CategoryInsert): Promise<Category | null> {
+    const { data, error } = await supabase.from("categories").insert(input).select().single();
+    return error ? null : data;
+  }
+
+  static async deleteCategory(categoryId: string): Promise<boolean> {
+    const { error } = await supabase.from("categories").delete().eq("id", categoryId);
+    return !error;
+  }
+
+  // --- REMINDERS ---
+  static async getReminders(familyId: string) {
+    const { data, error } = await supabase
+      .from("reminders")
       .select(`
         *,
-        permissions (*)
-      `)
-      .eq("family_id", familyId);
-
-    if (error) {
-      console.error("Error fetching family members with permissions:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async updateMemberRole(userId: string, role: "super_admin" | "parent" | "child"): Promise<boolean> {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role })
-      .eq("id", userId);
-
-    if (error) {
-      console.error("Error updating member role:", error);
-      return false;
-    }
-    return true;
-  }
-
-  static async getUserPermissions(userId: string): Promise<Permission[] | null> {
-    const { data, error } = await supabase
-      .from("permissions")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("granted", true);
-    
-    if (error) {
-      console.error("Error fetching user permissions:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async setPermission(
-    userId: string,
-    familyId: string,
-    permissionName: string,
-    granted: boolean
-  ): Promise<Permission | null> {
-    const { data, error } = await supabase
-      .from("permissions")
-      .upsert({
-        user_id: userId,
-        family_id: familyId,
-        permission_name: permissionName as any,
-        granted: granted,
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error setting permission:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async getEvents(familyId: string, role: string): Promise<Event[] | null> {
-    let query = supabase
-      .from("events")
-      .select("*")
-      .eq("family_id", familyId);
-    
-    // Only parents and admins can see private events
-    if (role === "child") {
-      query = query.eq("visibility_level", "all");
-    }
-
-    const { data, error } = await query.order("start_time", { ascending: true });
-    
-    if (error) {
-      console.error("Error fetching events:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async createEvent(input: EventInsert): Promise<Event | null> {
-    const { data, error } = await supabase
-      .from("events")
-      .insert(input)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error creating event:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async updateEvent(eventId: string, input: Partial<EventInsert>): Promise<Event | null> {
-    const { data, error } = await supabase
-      .from("events")
-      .update(input)
-      .eq("id", eventId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating event:", error);
-      return null;
-    }
-    return data;
-  }
-
-  static async deleteEvent(eventId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from("events")
-      .delete()
-      .eq("id", eventId);
-    
-    if (error) {
-      console.error("Error deleting event:", error);
-      return false;
-    }
-    return true;
-  }
-
-  // --- TASKS ---
-
-  static async getTasks(familyId: string) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select(`
-        *,
-        assignee:profiles!tasks_assignee_id_fkey(id, name, avatar_url, role),
-        creator:profiles!tasks_creator_id_fkey(id, name, avatar_url)
+        category:categories(*),
+        creator:profiles!reminders_creator_id_fkey(id, name)
       `)
       .eq("family_id", familyId)
-      .order("created_at", { ascending: false });
+      .order("start_time", { ascending: true });
     
     if (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Error fetching reminders:", error);
       return null;
     }
     return data;
   }
 
-  static async createTask(input: TaskInsert): Promise<Task | null> {
-    const { data, error } = await supabase
-      .from("tasks")
-      .insert(input)
-      .select()
-      .single();
-    
+  static async createReminder(input: ReminderInsert): Promise<Reminder | null> {
+    const { data, error } = await supabase.from("reminders").insert(input).select().single();
     if (error) {
-      console.error("Error creating task:", error);
+      console.error("Error creating reminder:", error);
       return null;
     }
     return data;
   }
 
-  static async updateTask(taskId: string, input: Partial<TaskInsert>): Promise<Task | null> {
-    const { data, error } = await supabase
-      .from("tasks")
-      .update(input)
-      .eq("id", taskId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating task:", error);
-      return null;
-    }
-    return data;
+  static async updateReminder(id: string, input: Partial<ReminderInsert>): Promise<Reminder | null> {
+    const { data, error } = await supabase.from("reminders").update(input).eq("id", id).select().single();
+    return error ? null : data;
   }
 
-  static async deleteTask(taskId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", taskId);
-    
-    if (error) {
-      console.error("Error deleting task:", error);
-      return false;
-    }
-    return true;
+  static async deleteReminder(id: string): Promise<boolean> {
+    const { error } = await supabase.from("reminders").delete().eq("id", id);
+    return !error;
+  }
+
+  // --- EVENTS (KEEP FOR CALENDAR COMPATIBILITY) ---
+  static async getEvents(familyId: string): Promise<Event[] | null> {
+    const { data, error } = await supabase.from("events").select("*").eq("family_id", familyId);
+    return error ? null : data;
   }
 }

@@ -15,6 +15,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          color: string
+          created_at: string | null
+          family_id: string
+          id: string
+          name: string
+          updated_at: string | null
+          visibility_level: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          family_id: string
+          id?: string
+          name: string
+          updated_at?: string | null
+          visibility_level?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          family_id?: string
+          id?: string
+          name?: string
+          updated_at?: string | null
+          visibility_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           color: string | null
@@ -181,6 +219,70 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reminders: {
+        Row: {
+          category_id: string | null
+          completed: boolean | null
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          end_time: string
+          family_id: string
+          id: string
+          start_time: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          end_time: string
+          family_id: string
+          id?: string
+          start_time: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          end_time?: string
+          family_id?: string
+          id?: string
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"

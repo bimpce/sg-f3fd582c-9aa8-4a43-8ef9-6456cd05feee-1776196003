@@ -15,7 +15,7 @@ export function BottomNav() {
       active: currentPath === "/",
     },
     {
-      label: "Naloge",
+      label: "Opomniki",
       icon: CheckSquare,
       href: "/tasks",
       active: currentPath === "/tasks",
