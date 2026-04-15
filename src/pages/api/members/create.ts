@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,19 +8,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 1. Preveri, ali je klicoči uporabnik prijavljen in ima vlogo super_admin
-    const session = await getServerSession(req, res, authOptions);
+    // 1. Preveri, ali je klicoči uporabnik prijavljen
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     
-    if (!session) {
+    if (!token) {
+      console.error("Auth error: No token found in request");
       return res.status(401).json({ error: "Niste prijavljeni ali seja je potekla." });
     }
 
-    if (session.user.role !== "super_admin") {
-      return res.status(403).json({ error: `Samo Super-Admin lahko dodaja nove družinske člane. Vaša trenutna vloga je: ${session.user?.role || "neznana"}` });
+    if (token.role !== "super_admin") {
+      return res.status(403).json({ error: `Samo Super-Admin lahko dodaja nove družinske člane. Vaša trenutna vloga je: ${token.role || "neznana"}` });
     }
 
     const { name, email, password, role } = req.body;
-    const familyId = session.user.family_id;
+    const familyId = token.family_id as string;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ error: "Prosimo, izpolnite vsa polja." });
