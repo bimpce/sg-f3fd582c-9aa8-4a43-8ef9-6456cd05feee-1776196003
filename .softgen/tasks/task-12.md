@@ -13,9 +13,9 @@ position: 12
 Redesign the main index page to match the provided screenshot design and logic.
 
 ## Checklist
-- [ ] Posodobitev `src/pages/index.tsx` z novim dizajnom glave (Avatar, Pozdrav, Vloga)
-- [ ] Implementacija mesečnega koledarja v slovenščini
-- [ ] Logika za prikaz "Naslednjega dogodka" ob nalaganju strani
-- [ ] Logika za preklop med dnevnimi opomniki in naslednjim dogodkom ob kliku na koledar
-- [ ] Posodobitev spodnje navigacije (`BottomNav.tsx`), da ustreza ikonom in napisom na sliki (Koledar, Naloge, Profil)
+- [x] Posodobitev `src/pages/index.tsx` z novim dizajnom glave (Avatar, Pozdrav, Vloga)
+- [x] Implementacija mesečnega koledarja v slovenščini
+- [x] Logika za prikaz "Naslednjega dogodka" ob nalaganju strani
+- [x] Logika za preklop med dnevnimi opomniki in naslednjim dogodkom ob kliku na koledar
+- [x] Posodobitev spodnje navigacije (`BottomNav.tsx`), da ustreza ikonom in napisom na sliki (Koledar, Naloge, Profil)
 - [ ] Povezava s Supabase za pridobivanje dejanskih dogodkov/opomnikov

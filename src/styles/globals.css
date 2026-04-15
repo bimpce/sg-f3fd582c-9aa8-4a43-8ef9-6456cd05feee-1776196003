@@ -12,10 +12,10 @@
 
 @layer base {
   :root {
-    --radius: 1rem;
+    --radius: 1.5rem;
     
-    /* FamilySync barve */
-    --primary: 210 80% 60%;
+    /* FamilySync barve po sliki */
+    --primary: 210 80% 60%; /* #6495ED */
     --primary-foreground: 0 0% 100%;
     
     --background: 40 20% 97%;
@@ -100,7 +100,7 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading tracking-tight;
   }
 }
 
@@ -108,4 +108,18 @@
   .container {
     @apply mx-auto px-4 md:px-6 lg:px-8 max-w-7xl w-full;
   }
+}
+
+/* Custom Calendar Styles to match image */
+.rdp-day_selected {
+  background-color: #B9D1F0 !important;
+  color: #333 !important;
+  font-weight: 800 !important;
+  border-radius: 0.75rem !important;
+}
+
+.rdp-head_cell {
+  color: #A0A0A0 !important;
+  font-weight: 800 !important;
+  font-size: 0.65rem !important;
 }
