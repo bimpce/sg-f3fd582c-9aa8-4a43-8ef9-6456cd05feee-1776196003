@@ -238,6 +238,78 @@ export default function MembersSettingsPage() {
         </div>
 
         <div className="container max-w-2xl mt-6 space-y-6">
+          {members.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Ni najdenih članov.</p>
+          ) : (
+            members.map((member) => (
+              <Card key={member.id} className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={member.avatar_url || ""} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {member.name?.charAt(0).toUpperCase() || member.email?.charAt(0).toUpperCase() || <UserIcon className="w-6 h-6" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-lg">{member.name || member.full_name || "Neznano ime"}</h3>
+                      <p className="text-sm text-muted-foreground">{member.email}</p>
+                    </div>
+                  </div>
+                  
+                  {isSuperAdmin && member.id !== session?.user?.id ? (
+                    <Select 
+                      value={member.role || "child"} 
+                      onValueChange={(val) => handleRoleChange(member.id, val)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="super_admin">Super-Admin</SelectItem>
+                        <SelectItem value="parent">Starš</SelectItem>
+                        <SelectItem value="child">Otrok</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
+                      {member.role === "super_admin" ? "Super-Admin" : member.role === "parent" ? "Starš" : "Otrok"}
+                    </div>
+                  )}
+                </div>
+
+                {isSuperAdmin && member.id !== session?.user?.id && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-primary" />
+                      Dodatne pravice za člana
+                    </h4>
+                    <div className="space-y-3">
+                      {PERMISSIONS_LIST.map((perm) => {
+                        // Preverimo, če ima uporabnik to pravico
+                        const isGranted = member.permissions?.some(
+                          (p: any) => p.permission_name === perm.key && p.granted
+                        ) || false;
+                        
+                        return (
+                          <div key={perm.key} className="flex items-center justify-between">
+                            <Label htmlFor={`${member.id}-${perm.key}`} className="text-sm font-normal cursor-pointer">
+                              {perm.label}
+                            </Label>
+                            <Switch
+                              id={`${member.id}-${perm.key}`}
+                              checked={isGranted}
+                              onCheckedChange={() => handlePermissionToggle(member.id, perm.key, isGranted)}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </>
