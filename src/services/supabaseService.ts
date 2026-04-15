@@ -94,6 +94,21 @@ export class SupabaseService {
     return data;
   }
 
+  static async updateProfile(userId: string, input: { name?: string }): Promise<Profile | null> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(input)
+      .eq("id", userId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating profile:", error);
+      return null;
+    }
+    return data;
+  }
+
   static async getFamilyMembers(familyId: string): Promise<Profile[] | null> {
     const { data, error } = await supabase
       .from("profiles")
