@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Save } from "lucide-react";
+import { LogOut, Save, Copy, Check } from "lucide-react";
 import { SupabaseService } from "@/services/supabaseService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,12 +19,20 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     } else if (status === "authenticated" && session?.user?.name) {
       setName(session.user.name);
+      
+      if (session.user.role === "super_admin" && session.user.family_id) {
+        SupabaseService.getFamilyById(session.user.family_id).then(data => {
+          if (data) setInviteCode(data.invite_code);
+        });
+      }
     }
   }, [status, session, router]);
 
@@ -53,6 +61,18 @@ export default function ProfilePage() {
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: "/auth/login" });
+  };
+
+  const copyToClipboard = () => {
+    if (inviteCode) {
+      navigator.clipboard.writeText(inviteCode);
+      setCopied(true);
+      toast({
+        title: "Kopirano!",
+        description: "Družinska koda je kopirana v odložišče.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (status === "loading") {
@@ -126,6 +146,27 @@ export default function ProfilePage() {
               </form>
             </CardContent>
           </Card>
+
+          {session?.user?.role === "super_admin" && inviteCode && (
+            <Card className="border-border shadow-sm overflow-hidden mt-6">
+              <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10">
+                <CardTitle className="text-lg text-primary">Družinska koda za povabilo</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Delite to kodo z drugimi družinskimi člani. Z njo se bodo lahko ob registraciji pridružili vaši družini.
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-muted/30 p-3 rounded-md font-mono text-center font-bold text-xl tracking-widest border border-border">
+                    {inviteCode}
+                  </div>
+                  <Button variant="outline" size="icon" onClick={copyToClipboard} className="h-12 w-12 shrink-0">
+                    {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5 text-muted-foreground" />}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
