@@ -27,6 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Prosimo, izpolnite vsa polja." });
     }
 
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Manjka SUPABASE_SERVICE_ROLE_KEY v okoljskih spremenljivkah.");
+      return res.status(500).json({ 
+        error: "Sistemska napaka: Manjka administrativni ključ (SUPABASE_SERVICE_ROLE_KEY). Prosimo, dodajte ga v .env.local nastavitve in ponovno zaženite strežnik." 
+      });
+    }
+
     // 2. Inicializiraj Supabase Admin klienta (uporablja Service Role Key za obvod varnostnih pravil)
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
