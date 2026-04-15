@@ -11,8 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // 1. Preveri, ali je klicoči uporabnik prijavljen in ima vlogo super_admin
     const session = await getServerSession(req, res, authOptions);
-    if (!session || session.user.role !== "super_admin") {
-      return res.status(403).json({ error: "Samo Super-Admin lahko dodaja nove družinske člane." });
+    
+    if (!session) {
+      return res.status(401).json({ error: "Niste prijavljeni ali seja je potekla." });
+    }
+
+    if (session.user.role !== "super_admin") {
+      return res.status(403).json({ error: `Samo Super-Admin lahko dodaja nove družinske člane. Vaša trenutna vloga je: ${session.user?.role || "neznana"}` });
     }
 
     const { name, email, password, role } = req.body;
