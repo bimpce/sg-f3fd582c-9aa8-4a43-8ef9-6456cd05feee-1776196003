@@ -39,6 +39,8 @@ export async function verifyUser(email: string, password: string) {
     .eq("id", profile.family_id)
     .single() : null;
 
+  const rawPermissions = await SupabaseService.getUserPermissions(profile.id);
+
   // Return formatted user for NextAuth
   return {
     id: profile.id,
@@ -47,7 +49,7 @@ export async function verifyUser(email: string, password: string) {
     family_id: profile.family_id || "",
     family_name: family?.data?.name || "Družina",
     role: (profile.role as "super_admin" | "parent" | "child") || "child",
-    permissions: await SupabaseService.getUserPermissions(profile.id),
+    permissions: rawPermissions?.map(p => p.permission_name) || [],
   };
 }
 
