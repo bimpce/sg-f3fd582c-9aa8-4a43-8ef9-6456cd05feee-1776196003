@@ -54,6 +54,20 @@ export class SupabaseService {
     return data;
   }
 
+  static async getFamilyById(id: string): Promise<Family | null> {
+    const { data, error } = await supabase
+      .from("families")
+      .select("*")
+      .eq("id", id)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching family by id:", error);
+      return null;
+    }
+    return data;
+  }
+
   static async createProfile(input: ProfileCreateInput): Promise<Profile | null> {
     const { data, error } = await supabase
       .from("profiles")
