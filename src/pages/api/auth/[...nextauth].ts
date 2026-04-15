@@ -12,27 +12,16 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Manjkajoči podatki.");
         }
 
         try {
           const user = await verifyUser(credentials.email, credentials.password);
-          
-          if (!user) {
-            return null;
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            family_id: user.family_id,
-            role: user.role as "super_admin" | "parent" | "child",
-            permissions: user.permissions?.map(p => p.permission_name) || [],
-          };
-        } catch (error) {
+          return user;
+        } catch (error: any) {
           console.error("Auth error:", error);
-          return null;
+          // Return specific error message to the client
+          throw new Error(error.message || "Prišlo je do neznane napake pri prijavi.");
         }
       },
     }),

@@ -30,12 +30,16 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Napačen email ali geslo");
+        // NextAuth včasih vrne generičen "CredentialsSignin", zato to preverimo
+        const errMsg = result.error === "CredentialsSignin" 
+          ? "Napačen email ali geslo." 
+          : result.error;
+        setError(errMsg);
       } else if (result?.ok) {
         router.push("/");
       }
     } catch (err) {
-      setError("Prišlo je do napake. Poskusite ponovno.");
+      setError("Prišlo je do nepričakovane napake. Poskusite ponovno.");
     } finally {
       setIsLoading(false);
     }

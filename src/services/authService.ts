@@ -10,9 +10,18 @@ export async function verifyUser(email: string, password: string) {
     password,
   });
 
-  if (error || !data.user) {
+  if (error) {
     console.error("Supabase auth error:", error);
-    return null;
+    if (error.message.includes("Email not confirmed")) {
+      throw new Error("Prosimo, potrdite vaš email naslov (preverite mapo Prejeto/Spam) ali pa v nastavitvah baze izklopite 'Confirm Email'.");
+    } else if (error.message.includes("Invalid login credentials")) {
+      throw new Error("Napačen email ali geslo.");
+    }
+    throw new Error(error.message);
+  }
+
+  if (!data.user) {
+    throw new Error("Uporabnik ne obstaja.");
   }
 
   // Get user profile from Supabase profiles table
@@ -20,7 +29,7 @@ export async function verifyUser(email: string, password: string) {
   
   if (!profile) {
     console.error("Profile not found for user:", data.user.id);
-    return null;
+    throw new Error("Profil uporabnika ne obstaja v bazi.");
   }
 
   // Get family info
