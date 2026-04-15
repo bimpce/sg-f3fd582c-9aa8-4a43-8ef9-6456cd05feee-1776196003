@@ -1,6 +1,6 @@
 ---
 title: Profil uporabnika in osebne nastavitve
-status: in_progress
+status: done
 priority: medium
 type: feature
 tags: [profile, settings, user]
@@ -13,9 +13,9 @@ position: 10
 Implementacija osebne profilne strani za uporabnika (`/profile`). Stran mora omogočati pregled osebnih podatkov (ime, email, vloga), urejanje imena ter odjavo iz sistema.
 
 ## Checklist
-- [ ] Dodaj metodo `updateProfile` v `supabaseService.ts`
-- [ ] Ustvari stran `src/pages/profile.tsx`
-- [ ] Prikaz uporabnikovih podatkov (Avatar, Ime, Email, Vloga)
-- [ ] Obrazec za posodobitev uporabnikovega imena
-- [ ] Dodaj gumb za varno odjavo (Sign Out)
-- [ ] Poveži z navigacijo (BottomNav in Header)
+- [x] Dodaj metodo `updateProfile` v `supabaseService.ts`
+- [x] Ustvari stran `src/pages/profile.tsx`
+- [x] Prikaz uporabnikovih podatkov (Avatar, Ime, Email, Vloga)
+- [x] Obrazec za posodobitev uporabnikovega imena
+- [x] Dodaj gumb za varno odjavo (Sign Out)
+- [x] Poveži z navigacijo (BottomNav in Header)
