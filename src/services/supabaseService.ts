@@ -11,6 +11,7 @@ type Permission = Database["public"]["Tables"]["permissions"]["Row"];
 type FamilyInsert = Database["public"]["Tables"]["families"]["Insert"];
 type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
+type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
 export interface FamilyCreateInput {
   name: string;
@@ -260,6 +261,68 @@ export class SupabaseService {
     
     if (error) {
       console.error("Error deleting event:", error);
+      return false;
+    }
+    return true;
+  }
+
+  // --- TASKS ---
+
+  static async getTasks(familyId: string) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select(`
+        *,
+        assignee:profiles!tasks_assignee_id_fkey(id, name, avatar_url, role),
+        creator:profiles!tasks_creator_id_fkey(id, name, avatar_url)
+      `)
+      .eq("family_id", familyId)
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching tasks:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async createTask(input: TaskInsert): Promise<Task | null> {
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert(input)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error creating task:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async updateTask(taskId: string, input: Partial<TaskInsert>): Promise<Task | null> {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update(input)
+      .eq("id", taskId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating task:", error);
+      return null;
+    }
+    return data;
+  }
+
+  static async deleteTask(taskId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", taskId);
+    
+    if (error) {
+      console.error("Error deleting task:", error);
       return false;
     }
     return true;

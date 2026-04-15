@@ -13,9 +13,9 @@ position: 11
 Aplikacija potrebuje sistem za upravljanje družinskih opravil. Naloge se lahko dodelijo specifičnim članom in označijo kot opravljene.
 
 ## Checklist
-- [ ] Dodaj CRUD metode za naloge v `supabaseService.ts`
-- [ ] Ustvari stran `src/pages/tasks.tsx`
-- [ ] Prikaz seznama nalog (ločeno na "V teku" in "Opravljeno")
-- [ ] Obrazec (Dialog) za dodajanje nove naloge z možnostjo dodelitve članu
-- [ ] Implementiraj Checkbox za označevanje naloge kot opravljene
-- [ ] Poveži z `BottomNav.tsx`
+- [x] Dodaj CRUD metode za naloge v `supabaseService.ts`
+- [x] Ustvari stran `src/pages/tasks.tsx`
+- [x] Prikaz seznama nalog (ločeno na "V teku" in "Opravljeno")
+- [x] Obrazec (Dialog) za dodajanje nove naloge z možnostjo dodelitve članu
+- [x] Implementiraj Checkbox za označevanje naloge kot opravljene
+- [x] Poveži z `BottomNav.tsx`
