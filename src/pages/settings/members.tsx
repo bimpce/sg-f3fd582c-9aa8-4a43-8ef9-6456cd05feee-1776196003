@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { 
   Select, 
@@ -173,6 +174,9 @@ export default function MembersSettingsPage() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Dodaj novega družinskega člana</DialogTitle>
+                    <DialogDescription className="hidden">
+                      Izpolnite podatke za ustvarjanje novega družinskega člana.
+                    </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateMember} className="space-y-4 pt-4">
                     <div className="space-y-2">
