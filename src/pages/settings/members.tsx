@@ -70,9 +70,20 @@ export default function MembersSettingsPage() {
 
   const loadMembers = async () => {
     setLoading(true);
-    const data = await SupabaseService.getFamilyMembersWithPermissions(session?.user?.family_id as string);
-    if (data) {
-      setMembers(data);
+    try {
+      const response = await fetch("/api/members/list");
+      if (response.ok) {
+        const data = await response.json();
+        setMembers(data.members || []);
+      } else {
+        toast({
+          title: "Napaka pri nalaganju",
+          description: "Seznama članov ni bilo mogoče naložiti.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading members:", error);
     }
     setLoading(false);
   };
