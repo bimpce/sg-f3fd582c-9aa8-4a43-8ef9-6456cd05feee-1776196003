@@ -7,6 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Select, 
   SelectContent, 
@@ -15,7 +23,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, Shield, User as UserIcon, Settings2 } from "lucide-react";
+import { ChevronLeft, Shield, User as UserIcon, Settings2, Plus } from "lucide-react";
 import { SupabaseService } from "@/services/supabaseService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +44,18 @@ export default function MembersSettingsPage() {
   const [members, setMembers] = useState<MemberWithPermissions[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Dodajanje novega člana
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newMember, setNewMember] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "child"
+  });
+
   const isAdmin = session?.user?.role === "super_admin" || session?.user?.role === "parent";
+  const isSuperAdmin = session?.user?.role === "super_admin";
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -55,6 +74,42 @@ export default function MembersSettingsPage() {
       setMembers(data);
     }
     setLoading(false);
+  };
+
+  const handleCreateMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch("/api/members/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMember),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Napaka pri dodajanju člana.");
+      }
+
+      toast({
+        title: "Član dodan!",
+        description: `${newMember.name} je bil uspešno dodan v družino.`,
+      });
+      
+      setIsAddDialogOpen(false);
+      setNewMember({ name: "", email: "", password: "", role: "child" });
+      loadMembers();
+    } catch (error: any) {
+      toast({
+        title: "Napaka",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRoleChange = async (memberId: string, newRole: string) => {
@@ -100,89 +155,87 @@ export default function MembersSettingsPage() {
       <div className="min-h-screen pb-24 bg-background">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-4">
-          <div className="container max-w-2xl flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-            <h1 className="text-xl font-bold">Člani družine</h1>
+          <div className="container max-w-2xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+              <h1 className="text-xl font-bold">Člani družine</h1>
+            </div>
+
+            {isSuperAdmin && (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <Plus className="w-4 h-4" /> Dodaj člana
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Dodaj novega družinskega člana</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateMember} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Ime</Label>
+                      <Input
+                        id="name"
+                        value={newMember.name}
+                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                        placeholder="Npr. Ana"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-poštni naslov</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newMember.email}
+                        onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                        placeholder="ana@primer.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Geslo</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={newMember.password}
+                        onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
+                        placeholder="Vsaj 6 znakov"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Vloga</Label>
+                      <Select 
+                        value={newMember.role} 
+                        onValueChange={(val) => setNewMember({ ...newMember, role: val })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Izberi vlogo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="parent">Starš / Skrbnik</SelectItem>
+                          <SelectItem value="child">Otrok</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+                      {isSubmitting ? "Ustvarjanje..." : "Ustvari račun"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
 
         <div className="container max-w-2xl mt-6 space-y-6">
-          {members.map((member) => (
-            <Card key={member.id} className="p-6 overflow-hidden border-border shadow-sm">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-12 h-12 border-2 border-primary/20">
-                    <AvatarImage src={member.avatar_url} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {member.name?.charAt(0) || member.email?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-bold text-lg">{member.name || "Brez imena"}</h3>
-                    <p className="text-sm text-muted-foreground">{member.email}</p>
-                  </div>
-                </div>
-                
-                <Select
-                  defaultValue={member.role}
-                  onValueChange={(val) => handleRoleChange(member.id, val)}
-                  disabled={member.id === session?.user?.id} // Cannot change own role
-                >
-                  <SelectTrigger className="w-[130px] bg-muted/50">
-                    <SelectValue placeholder="Vloga" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="super_admin">Super-Admin</SelectItem>
-                    <SelectItem value="parent">Starš</SelectItem>
-                    <SelectItem value="child">Otrok</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Dovoljenja
-                  </span>
-                </div>
-                
-                <div className="grid gap-4">
-                  {PERMISSIONS_LIST.map((perm) => {
-                    const isGranted = member.permissions?.find(
-                      (p: any) => p.permission_name === perm.key
-                    )?.granted || false;
-
-                    return (
-                      <div key={perm.key} className="flex items-center justify-between py-1">
-                        <Label htmlFor={`${member.id}-${perm.key}`} className="flex-1 cursor-pointer font-medium">
-                          {perm.label}
-                        </Label>
-                        <Switch
-                          id={`${member.id}-${perm.key}`}
-                          checked={isGranted}
-                          onCheckedChange={() => handlePermissionToggle(member.id, perm.key, isGranted)}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </Card>
-          ))}
-
-          {members.length === 0 && (
-            <div className="text-center py-12">
-              <UserIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Ni najdenih članov.</p>
-            </div>
-          )}
         </div>
       </div>
-
-      <BottomNav />
     </>
   );
 }
