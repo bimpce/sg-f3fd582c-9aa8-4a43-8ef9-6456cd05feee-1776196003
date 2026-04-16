@@ -64,7 +64,11 @@ export class SupabaseService {
 
   static async createCategory(input: any): Promise<Category | null> {
     const { data, error } = await supabase.from("categories").insert(input).select().single();
-    return error ? null : data;
+    if (error) {
+      console.error("Error creating category:", error);
+      return null;
+    }
+    return data;
   }
 
   static async deleteCategory(categoryId: string): Promise<boolean> {

@@ -67,41 +67,55 @@ export default function RemindersPage() {
     e.preventDefault();
     if (!title.trim() || !session?.user) return;
     setIsSubmitting(true);
-    const result = await SupabaseService.createReminder({
-      title,
-      start_time: new Date(startDate).toISOString(),
-      end_time: new Date(endDate).toISOString(),
-      category_id: categoryId || null,
-      family_id: session.user.family_id as string,
-      creator_id: session.user.id,
-      completed: false
-    });
-    if (result) {
-      toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
-      setIsReminderOpen(false);
-      setTitle("");
-      loadData();
+    try {
+      const result = await SupabaseService.createReminder({
+        title,
+        start_time: new Date(startDate).toISOString(),
+        end_time: new Date(endDate).toISOString(),
+        category_id: categoryId || null,
+        family_id: session.user.family_id as string,
+        creator_id: session.user.id,
+        completed: false
+      });
+      if (result) {
+        toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
+        setIsReminderOpen(false);
+        setTitle("");
+        loadData();
+      } else {
+        toast({ title: "Napaka", description: "Opomnika ni bilo mogoče shraniti. Preverite pravice.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Napaka", description: "Prišlo je do nepričakovane napake.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName.trim() || !session?.user) return;
     setIsSubmitting(true);
-    const result = await SupabaseService.createCategory({
-      name: catName,
-      color: catColor,
-      visibility_level: catVisibility as any,
-      family_id: session.user.family_id as string
-    });
-    if (result) {
-      toast({ title: "Kategorija dodana", description: "Nova kategorija je pripravljena." });
-      setIsCategoryOpen(false);
-      setCatName("");
-      loadData();
+    try {
+      const result = await SupabaseService.createCategory({
+        name: catName,
+        color: catColor,
+        visibility_level: catVisibility as any,
+        family_id: session.user.family_id as string
+      });
+      if (result) {
+        toast({ title: "Kategorija dodana", description: "Nova kategorija je pripravljena." });
+        setIsCategoryOpen(false);
+        setCatName("");
+        loadData();
+      } else {
+        toast({ title: "Napaka", description: "Kategorije ni bilo mogoče shraniti. Preverite pravice.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Napaka", description: "Prišlo je do nepričakovane napake.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const handleToggleComplete = async (id: string, current: boolean) => {
