@@ -209,7 +209,7 @@ export default function RemindersPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background transition-colors duration-300">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -218,15 +218,15 @@ export default function RemindersPage() {
   return (
     <>
       <SEO title="Opomniki - FamilySync" />
-      <div className="min-h-screen pb-32 bg-[#F9F8F6]">
-        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#F0F0F0] px-4 py-6">
+      <div className="min-h-screen pb-32 bg-background transition-colors duration-300">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-6">
           <div className="container max-w-2xl flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-[#333]">Opomniki</h1>
+            <h1 className="text-2xl font-bold text-foreground">Opomniki</h1>
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="rounded-full border-[#6495ED] text-[#6495ED] hover:bg-[#6495ED]/10"
+                className="rounded-full border-primary text-primary hover:bg-primary/10"
                 onClick={() => router.push('/categories')}
               >
                 <Tag className="w-4 h-4 mr-2" /> Kategorije
@@ -237,7 +237,7 @@ export default function RemindersPage() {
                 setIsReminderOpen(open);
               }}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="rounded-full bg-[#6495ED] hover:bg-[#5484DC]" onClick={resetForm}>
+                  <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90" onClick={resetForm}>
                     <Plus className="w-4 h-4 mr-2" /> Dodaj
                   </Button>
                 </DialogTrigger>
@@ -306,7 +306,7 @@ export default function RemindersPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
                       {editingReminderId ? "Shrani spremembe" : "Ustvari opomnik"}
                     </Button>
                   </form>
@@ -318,16 +318,16 @@ export default function RemindersPage() {
 
         <div className="container max-w-2xl mt-8 px-4">
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 p-1 bg-white rounded-full shadow-sm border border-[#F0F0F0] h-12">
-              <TabsTrigger value="active" className="rounded-full data-[state=active]:bg-[#6495ED] data-[state=active]:text-white">Aktivni ({activeReminders.length})</TabsTrigger>
-              <TabsTrigger value="completed" className="rounded-full data-[state=active]:bg-[#6495ED] data-[state=active]:text-white">Opravljeni ({completedReminders.length})</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-background neu-pressed rounded-full border-none h-12">
+              <TabsTrigger value="active" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:neu-flat transition-all">Aktivni ({activeReminders.length})</TabsTrigger>
+              <TabsTrigger value="completed" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:neu-flat transition-all">Opravljeni ({completedReminders.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="active" className="space-y-4 mt-6">
               {activeReminders.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#DDD]">
-                  <CheckCircle2 className="w-16 h-16 text-[#DDD] mx-auto mb-4" />
-                  <p className="text-[#999] font-medium">Trenutno nimate nobenih opomnikov.</p>
+                <div className="text-center py-16 bg-background neu-pressed rounded-3xl border-transparent">
+                  <CheckCircle2 className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">Trenutno nimate nobenih opomnikov.</p>
                 </div>
               ) : (
                 activeReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)
@@ -346,27 +346,29 @@ export default function RemindersPage() {
 }
 
 function ReminderCard({ reminder, onToggle, onEdit, onDelete }: { reminder: any, onToggle: (id: string, s: boolean) => void, onEdit: (r: any) => void, onDelete: (id: string) => void }) {
-  const catColor = reminder.category?.color || "#DDD";
+  const hasCat = !!reminder.category;
+  const catColor = reminder.category?.color;
   
   return (
-    <Card className={cn("p-5 rounded-[1.5rem] border-none shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all", reminder.completed ? "opacity-60 grayscale" : "bg-white")}>
+    <Card className={cn("p-5 rounded-[1.5rem] border-transparent transition-all neu-flat", reminder.completed && "opacity-60 grayscale")}>
       <div className="flex items-start gap-4">
         <Checkbox
           checked={reminder.completed}
           onCheckedChange={() => onToggle(reminder.id, reminder.completed)}
-          className="mt-1 w-6 h-6 rounded-full border-2 border-[#6495ED] data-[state=checked]:bg-[#6495ED]"
+          className="mt-1 w-6 h-6 rounded-full border-2 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground neu-pressed"
         />
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className={cn("text-lg font-bold text-[#333]", reminder.completed && "line-through")}>{reminder.title}</h3>
-            {reminder.category && (
-              <Badge variant="outline" className="text-[10px] uppercase font-extrabold tracking-widest border-none px-2" style={{ backgroundColor: `${catColor}20`, color: catColor }}>
-                {reminder.category.name}
+            <h3 className={cn("text-lg font-bold text-foreground", reminder.completed && "line-through")}>{reminder.title}</h3>
+            {hasCat && (
+              <Badge variant="outline" className="text-[10px] uppercase font-extrabold tracking-widest border-none px-2 relative overflow-hidden" style={{ color: catColor }}>
+                <div className="absolute inset-0 opacity-15" style={{ backgroundColor: catColor }} />
+                <span className="relative z-10">{reminder.category.name}</span>
               </Badge>
             )}
           </div>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-xs text-[#888] font-medium">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <Clock className="w-3.5 h-3.5" />
               <span>
                 {reminder.is_all_day 
@@ -376,17 +378,17 @@ function ReminderCard({ reminder, onToggle, onEdit, onDelete }: { reminder: any,
               </span>
             </div>
             {reminder.category?.visibility_level === 'parents' && (
-              <div className="flex items-center gap-1 text-[10px] text-[#9333EA] font-bold uppercase">
+              <div className="flex items-center gap-1 text-[10px] text-purple-500 font-bold uppercase">
                 <EyeOff className="w-3 h-3" /> Samo starši
               </div>
             )}
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="text-[#6495ED] hover:text-[#5484DC] hover:bg-[#6495ED]/10" onClick={() => onEdit(reminder)}>
+          <Button variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => onEdit(reminder)}>
             <Pencil className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-[#DDD] hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(reminder.id)}>
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(reminder.id)}>
             <Trash2 className="w-5 h-5" />
           </Button>
         </div>

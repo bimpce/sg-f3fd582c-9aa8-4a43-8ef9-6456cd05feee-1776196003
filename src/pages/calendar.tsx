@@ -142,7 +142,7 @@ export default function CalendarPage() {
 
   const renderHeader = () => {
     return (
-      <div className="flex items-center justify-between px-4 py-6 bg-card border-b border-border sticky top-0 z-10">
+      <div className="flex items-center justify-between px-4 py-6 bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <CalendarIcon className="w-6 h-6 text-primary" />
           <h1 className="text-xl font-bold capitalize">
@@ -164,7 +164,7 @@ export default function CalendarPage() {
   const renderDays = () => {
     const days = ["Pon", "Tor", "Sre", "Čet", "Pet", "Sob", "Ned"];
     return (
-      <div className="grid grid-cols-7 border-b border-border bg-muted/30">
+      <div className="grid grid-cols-7 border-b border-border bg-background/50">
         {days.map((day, i) => (
           <div key={i} className="py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider">
             {day}
@@ -198,7 +198,7 @@ export default function CalendarPage() {
           key={day.toString()}
           className={cn(
             "min-h-[80px] border-r border-b border-border p-1 transition-colors relative flex flex-col cursor-pointer group",
-            !isSameMonth(day, monthStart) ? "bg-muted/10 text-muted-foreground/50" : "bg-card hover:bg-muted/20",
+            !isSameMonth(day, monthStart) ? "bg-muted/5 text-muted-foreground/50" : "bg-transparent hover:bg-muted/10",
             isSameDay(day, new Date()) && "bg-primary/5",
             isSameDay(day, selectedDate) && "ring-2 ring-primary ring-inset z-10"
           )}
@@ -225,24 +225,30 @@ export default function CalendarPage() {
           </div>
           <div className="mt-1 space-y-1 overflow-hidden">
             {holiday && (
-              <div className="text-[10px] px-1.5 py-0.5 rounded truncate leading-tight font-bold text-red-600 bg-red-50 border-l-2 border-red-500 mb-0.5">
+              <div className="text-[10px] px-1.5 py-0.5 rounded truncate leading-tight font-bold text-red-600 bg-red-500/10 border-l-2 border-red-500 mb-0.5">
                 {holiday.name}
               </div>
             )}
             {dayEvents.slice(0, 3).map((event) => {
-              const catColor = event.category?.color || '#6495ED';
+              const hasCat = !!event.category;
+              const catColor = event.category?.color;
               return (
                 <div
                   key={event.id}
-                  className="text-[10px] px-1.5 py-0.5 rounded truncate leading-tight flex items-center gap-1 font-medium"
-                  style={{ 
-                    backgroundColor: `${catColor}15`, 
-                    color: catColor,
-                    borderLeft: `2px solid ${catColor}` 
-                  }}
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded truncate leading-tight flex items-center gap-1 font-medium relative overflow-hidden",
+                    !hasCat && "border-l-2 border-primary text-primary"
+                  )}
+                  style={hasCat ? { color: catColor, borderLeftColor: catColor, borderLeftWidth: '2px', borderLeftStyle: 'solid' } : {}}
                 >
-                  {event.category?.visibility_level === 'parents' && <Lock className="w-2.5 h-2.5 flex-shrink-0" />}
-                  {event.title}
+                  <div 
+                    className={cn("absolute inset-0 opacity-15", !hasCat && "bg-primary")} 
+                    style={hasCat ? { backgroundColor: catColor } : {}} 
+                  />
+                  <div className="relative z-10 flex items-center gap-1 w-full">
+                    {event.category?.visibility_level === 'parents' && <Lock className="w-2.5 h-2.5 flex-shrink-0" />}
+                    <span className="truncate">{event.title}</span>
+                  </div>
                 </div>
               );
             })}
@@ -300,19 +306,19 @@ export default function CalendarPage() {
         </div>
 
         {!selectedHoliday && eventsForSelectedDay.length === 0 ? (
-          <Card className="p-8 text-center border-dashed border-2 bg-muted/20">
+          <Card className="p-8 text-center border-dashed border-2 bg-muted/10">
             <p className="text-muted-foreground italic">Ni opomnikov za ta dan.</p>
           </Card>
         ) : (
           <>
             {selectedHoliday && (
-              <Card className="p-4 border-none shadow-sm bg-red-50/50" style={{ borderLeft: `4px solid #EF4444` }}>
+              <Card className="p-4 border-none shadow-sm bg-red-500/10" style={{ borderLeft: `4px solid #EF4444` }}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 w-full">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="font-bold text-red-600 text-lg">{selectedHoliday.name}</h3>
+                      <h3 className="font-bold text-red-500 text-lg">{selectedHoliday.name}</h3>
                       <div className="flex gap-2">
-                        <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none bg-red-100 text-red-600">
+                        <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none bg-red-500/20 text-red-500">
                           Praznik
                         </Badge>
                       </div>
@@ -327,23 +333,25 @@ export default function CalendarPage() {
               </Card>
             )}
             {eventsForSelectedDay.map((event) => {
-              const catColor = event.category?.color || '#6495ED';
+              const hasCat = !!event.category;
+              const catColor = event.category?.color;
               return (
-                <Card key={event.id} className="p-4 border-none shadow-sm" style={{ borderLeft: `4px solid ${catColor}` }}>
+                <Card key={event.id} className={cn("p-4 border-none neu-flat", !hasCat && "border-l-4 border-primary")} style={hasCat ? { borderLeft: `4px solid ${catColor}` } : {}}>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 w-full">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h3 className="font-bold text-foreground text-lg">{event.title}</h3>
                         <div className="flex gap-2">
-                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none" style={{ backgroundColor: `${catColor}15`, color: catColor }}>
-                            {event.category?.name || "Opomnik"}
+                          <Badge variant="outline" className={cn("text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none relative overflow-hidden", !hasCat && "text-primary")} style={hasCat ? { color: catColor } : {}}>
+                            <div className={cn("absolute inset-0 opacity-15", !hasCat && "bg-primary")} style={hasCat ? { backgroundColor: catColor } : {}} />
+                            <span className="relative z-10">{event.category?.name || "Opomnik"}</span>
                           </Badge>
                           {event.category?.visibility_level === 'parents' ? (
-                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-purple-50 text-purple-600 border-purple-100">
+                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-purple-500/10 text-purple-500 border-none">
                               <Lock className="w-2.5 h-2.5" /> Starši
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-green-50 text-green-600 border-green-100">
+                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-green-500/10 text-green-500 border-none">
                               <Eye className="w-2.5 h-2.5" /> Vsi
                             </Badge>
                           )}
@@ -457,7 +465,7 @@ export default function CalendarPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
               Ustvari opomnik
             </Button>
           </form>

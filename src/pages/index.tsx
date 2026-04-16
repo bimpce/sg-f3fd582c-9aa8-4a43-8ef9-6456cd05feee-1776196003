@@ -137,7 +137,8 @@ export default function HomePage() {
                           {dayReminders.slice(0, 3).map((r, i) => (
                             <div 
                               key={r.id || i} 
-                              className="w-1 h-1 rounded-full bg-primary" 
+                              className={cn("w-1.5 h-1.5 rounded-full shadow-sm", !r.category && "bg-primary")}
+                              style={r.category?.color ? { backgroundColor: r.category.color } : {}}
                             />
                           ))}
                         </div>
@@ -150,9 +151,9 @@ export default function HomePage() {
                 months: "w-full",
                 month: "w-full space-y-4",
                 caption: "flex justify-center pt-1 relative items-center mb-4", 
-                caption_label: "text-sm font-bold uppercase tracking-widest text-[#6495ED]",
+                caption_label: "text-sm font-bold uppercase tracking-widest text-primary",
                 nav: "space-x-1 flex items-center",
-                nav_button: "flex items-center justify-center rounded-full w-8 h-8 bg-transparent p-0 text-muted-foreground hover:text-[#6495ED] hover:bg-[#6495ED]/10 transition-colors",
+                nav_button: "flex items-center justify-center rounded-full w-8 h-8 bg-transparent p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors",
                 nav_button_previous: "absolute left-1",
                 nav_button_next: "absolute right-1",
                 table: "w-full border-collapse",
@@ -213,7 +214,8 @@ export default function HomePage() {
                   {remindersForSelectedDay.map((reminder) => (
                     <Card key={reminder.id} className="p-6 rounded-[1.5rem] bg-background neu-flat border-transparent shadow-none flex items-center justify-between">
                       <div>
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
+                        <p className={cn("text-[10px] font-bold uppercase tracking-widest mb-1", !reminder.category && "text-primary")}
+                           style={reminder.category?.color ? { color: reminder.category.color } : {}}>
                           {reminder.category?.name || "OPOMNIK"}
                         </p>
                         <h3 className={cn("text-lg font-bold text-foreground mb-1", reminder.completed && "line-through opacity-50")}>
