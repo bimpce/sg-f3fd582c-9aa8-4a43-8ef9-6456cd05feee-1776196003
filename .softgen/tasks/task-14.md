@@ -18,10 +18,10 @@ Uporabnik želi celovito preimenovanje "nalog" v "opomnike" in razširitev funkc
 ## Checklist
 - [x] Posodobitev baze podatkov (tabele reminders, categories z barvami in visibility).
 - [ ] Preimenovanje strani `tasks.tsx` v `reminders.tsx` in posodobitev vseh referenc.
-- [ ] Posodobitev navigacije (BottomNav) in dashboarda.
-- [ ] Implementacija upravljanja kategorij (vnos naziva, barve in vidnosti).
+- [x] Posodobitev navigacije (BottomNav) in dashboarda.
+- [x] Implementacija upravljanja kategorij (vnos naziva, barve in vidnosti).
 - [x] Posodobitev servisa (supabaseService.ts).
-- [ ] Posodobitev obrazca za dodajanje opomnika (datumski razpon, ura, izbira kategorije).
-- [ ] Integracija barv kategorij v koledar.
-- [ ] Implementacija RLS logike za vidnost kategorij in opomnikov (starši vs vsi).
+- [x] Posodobitev obrazca za dodajanje opomnika (datumski razpon, ura, izbira kategorije).
+- [x] Integracija barv kategorij v koledar.
+- [x] Implementacija RLS logike za vidnost kategorij in opomnikov (starši vs vsi).
 - [ ] Testiranje celotnega toka.

@@ -52,10 +52,7 @@ export default function CalendarPage() {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const data = await SupabaseService.getEvents(
-      session?.user?.family_id as string,
-      session?.user?.role as string
-    );
+    const data = await SupabaseService.getReminders(session?.user?.family_id as string);
     if (data) {
       setEvents(data);
     }
@@ -134,9 +131,9 @@ export default function CalendarPage() {
               <div
                 key={event.id}
                 className="text-[10px] px-1 py-0.5 rounded truncate leading-tight flex items-center gap-1"
-                style={{ backgroundColor: event.color + '33', borderLeft: `2px solid ${event.color}` }}
+                style={{ backgroundColor: (event.category?.color || '#6495ED') + '33', borderLeft: `2px solid ${event.category?.color || '#6495ED'}` }}
               >
-                {event.visibility_level === 'parents' && <Lock className="w-2 h-2" />}
+                {event.category?.visibility_level === 'parents' && <Lock className="w-2 h-2" />}
                 {event.title}
               </div>
             ))}
@@ -173,7 +170,7 @@ export default function CalendarPage() {
           <h2 className="text-lg font-bold">
             {format(selectedDate, "eeee, d. MMMM", { locale: sl })}
           </h2>
-          <Button size="sm" className="rounded-full gap-2">
+          <Button size="sm" className="rounded-full gap-2" onClick={() => router.push('/tasks')}>
             <Plus className="w-4 h-4" />
             Dodaj
           </Button>
@@ -181,44 +178,32 @@ export default function CalendarPage() {
 
         {eventsForSelectedDay.length === 0 ? (
           <Card className="p-8 text-center border-dashed border-2 bg-muted/20">
-            <p className="text-muted-foreground italic">Ni dogodkov za ta dan.</p>
+            <p className="text-muted-foreground italic">Ni opomnikov za ta dan.</p>
           </Card>
         ) : (
           eventsForSelectedDay.map((event) => (
-            <Card key={event.id} className="p-4 border-l-4 shadow-sm" style={{ borderLeftColor: event.color }}>
+            <Card key={event.id} className="p-4 border-l-4 shadow-sm" style={{ borderLeftColor: event.category?.color || '#6495ED' }}>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-foreground">{event.title}</h3>
-                    {event.visibility_level === 'parents' ? (
+                    {event.category?.visibility_level === 'parents' ? (
                       <Badge variant="outline" className="text-[10px] py-0 h-4 gap-1">
                         <Lock className="w-2 h-2" /> Starši
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-[10px] py-0 h-4 gap-1">
+                      <Badge variant="outline" className="text-[10px] py-0 h-4 gap-1 text-[#6495ED] border-[#6495ED]">
                         <Eye className="w-2 h-2" /> Vsi
                       </Badge>
                     )}
                   </div>
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
-                  )}
                   <div className="flex flex-wrap gap-3 mt-2">
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      {format(parseISO(event.start_time), "HH:mm")}
+                      {format(parseISO(event.start_time), "HH:mm")} — {format(parseISO(event.end_time), "HH:mm")}
                     </div>
-                    {event.location && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="w-3 h-3" />
-                        {event.location}
-                      </div>
-                    )}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Plus className="w-4 h-4 rotate-45" />
-                </Button>
               </div>
             </Card>
           ))

@@ -7,9 +7,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Settings, SlidersHorizontal, MoveHorizontal } from "lucide-react";
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from "date-fns";
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, parseISO } from "date-fns";
 import { sl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { SupabaseService } from "@/services/supabaseService";
 
 interface Event {
   id: string;
@@ -25,34 +26,24 @@ export default function HomePage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [viewingSpecificDate, setViewingSpecificDate] = useState(false);
-
-  // Demo podatki - v naslednjem koraku povežemo s Supabase
-  const demoEvents: Event[] = [
-    {
-      id: "1",
-      title: "Obisk pri pediatru",
-      time: "10:00",
-      member: "Maja",
-      date: new Date(),
-      type: "event",
-    },
-    {
-      id: "2",
-      title: "Trening nogometa",
-      time: "17:00",
-      member: "Luka",
-      date: new Date(new Date().setDate(new Date().getDate() + 1)),
-      type: "event",
-    },
-  ];
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
     if (status === "unauthenticated" && mounted) {
       router.push("/auth/login");
+    } else if (status === "authenticated" && session?.user?.family_id) {
+      fetchReminders();
     }
-  }, [status, router, mounted]);
+  }, [status, router, mounted, session]);
+
+  const fetchReminders = async () => {
+    setLoading(true);
+    const data = await SupabaseService.getReminders(session?.user?.family_id as string);
+    if (data) setReminders(data);
+    setLoading(false);
+  };
 
   if (!mounted || status === "loading") {
     return (
@@ -68,20 +59,13 @@ export default function HomePage() {
   const userRole = session.user?.role || "child";
   const familyName = session.user?.family_name || "Družina";
 
-  const nextEvent = demoEvents[0]; // Zaenkrat vzamemo prvi dogodek
-  const eventsForSelectedDay = selectedDate 
-    ? demoEvents.filter(e => isSameDay(e.date, selectedDate))
+  const nextReminder = reminders.find(r => !r.completed && new Date(r.start_time) >= new Date());
+  const remindersForSelectedDay = selectedDate 
+    ? reminders.filter(r => isSameDay(parseISO(r.start_time), selectedDate))
     : [];
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    if (date) {
-      // Preverimo če obstajajo opomniki za ta dan
-      const hasEvents = demoEvents.some(e => isSameDay(e.date, date));
-      setViewingSpecificDate(hasEvents);
-    } else {
-      setViewingSpecificDate(false);
-    }
   };
 
   return (
@@ -148,52 +132,49 @@ export default function HomePage() {
 
           {/* Navodilo: S klikom na datum se spodaj odprejo opomniki... */}
           <div className="space-y-4">
-            {viewingSpecificDate && eventsForSelectedDay.length > 0 ? (
+            {remindersForSelectedDay.length > 0 ? (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
                   Opomniki za {format(selectedDate!, "d. MMMM", { locale: sl })}
                 </h3>
-                {eventsForSelectedDay.map((event) => (
-                  <Card key={event.id} className="p-6 rounded-[1.5rem] bg-[#EBF3FF] border-[#D1E3FF] shadow-none flex items-center justify-between">
+                {remindersForSelectedDay.map((reminder) => (
+                  <Card key={reminder.id} className="p-6 rounded-[1.5rem] bg-[#EBF3FF] border-[#D1E3FF] shadow-none flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1">
-                        DOGODEK
+                      <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1" style={{ color: reminder.category?.color }}>
+                        {reminder.category?.name || "OPOMNIK"}
                       </p>
-                      <h3 className="text-lg font-bold text-[#333] mb-1">
-                        {event.title}
+                      <h3 className={cn("text-lg font-bold text-[#333] mb-1", reminder.completed && "line-through opacity-50")}>
+                        {reminder.title}
                       </h3>
                       <p className="text-sm text-[#777] font-medium">
-                        Danes ob {event.time} • {event.member}
+                        Ob {format(parseISO(reminder.start_time), "HH:mm")}
                       </p>
                     </div>
                   </Card>
                 ))}
               </div>
-            ) : (
-              /* Privzet prikaz: Naslednji dogodek */
+            ) : nextReminder ? (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
-                  Naslednji dogodek
+                  Naslednji opomnik
                 </h3>
                 <Card className="p-6 rounded-[2rem] bg-[#EBF3FF] border-[#D1E3FF] border shadow-none relative overflow-hidden">
                   <div className="relative z-10">
-                    <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1">
-                      NASLEDNJI DOGODEK
+                    <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1" style={{ color: nextReminder.category?.color }}>
+                      {nextReminder.category?.name || "OPOMNIK"}
                     </p>
                     <h3 className="text-lg font-bold text-[#333] mb-1">
-                      {nextEvent.title}
+                      {nextReminder.title}
                     </h3>
                     <p className="text-sm text-[#777] font-medium">
-                      {isToday(nextEvent.date) ? "Danes" : format(nextEvent.date, "eeee", { locale: sl })} ob {nextEvent.time} • {nextEvent.member}
+                      {isToday(parseISO(nextReminder.start_time)) ? "Danes" : format(parseISO(nextReminder.start_time), "eeee", { locale: sl })} ob {format(parseISO(nextReminder.start_time), "HH:mm")}
                     </p>
                   </div>
-                  {/* Ikona s slike */}
-                  <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                    <div className="w-12 h-12 rounded-full border-2 border-[#6495ED] flex items-center justify-center text-[#6495ED] bg-white shadow-sm">
-                      <MoveHorizontal className="w-6 h-6 rotate-45" />
-                    </div>
-                  </div>
                 </Card>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-muted-foreground text-sm italic">Ni načrtovanih opomnikov.</p>
               </div>
             )}
           </div>
