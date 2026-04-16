@@ -32,11 +32,13 @@ import {
   isSameMonth, 
   isSameDay, 
   eachDayOfInterval,
-  parseISO
+  parseISO,
+  startOfDay
 } from "date-fns";
 import { sl } from "date-fns/locale";
 import { SupabaseService } from "@/services/supabaseService";
 import { cn } from "@/lib/utils";
+import { getHolidayForDate } from "@/lib/holidays";
 
 export default function CalendarPage() {
   const { data: session, status } = useSession();
@@ -183,7 +185,13 @@ export default function CalendarPage() {
     let days = [];
 
     calendarDays.forEach((day, i) => {
-      const dayEvents = events.filter(event => isSameDay(parseISO(event.start_time), day));
+      const target = startOfDay(day);
+      const dayEvents = events.filter(event => {
+        const start = startOfDay(parseISO(event.start_time));
+        const end = startOfDay(parseISO(event.end_time));
+        return target >= start && target <= end;
+      });
+      const holiday = getHolidayForDate(day);
       
       days.push(
         <div
@@ -200,7 +208,7 @@ export default function CalendarPage() {
           <div className="flex justify-between items-start">
             <span className={cn(
               "text-xs font-semibold ml-1 mt-1 h-5 w-5 flex items-center justify-center rounded-full",
-              isSameDay(day, new Date()) && "bg-primary text-white"
+              isSameDay(day, new Date()) ? "bg-primary text-white" : (holiday ? "text-red-500" : "")
             )}>
               {format(day, "d")}
             </span>
@@ -216,6 +224,11 @@ export default function CalendarPage() {
             </span>
           </div>
           <div className="mt-1 space-y-1 overflow-hidden">
+            {holiday && (
+              <div className="text-[10px] px-1.5 py-0.5 rounded truncate leading-tight font-bold text-red-600 bg-red-50 border-l-2 border-red-500 mb-0.5">
+                {holiday.name}
+              </div>
+            )}
             {dayEvents.slice(0, 3).map((event) => {
               const catColor = event.category?.color || '#6495ED';
               return (
@@ -264,8 +277,15 @@ export default function CalendarPage() {
 
   const renderSelectedDayEvents = () => {
     const eventsForSelectedDay = selectedDate 
-      ? events.filter((e) => isSameDay(new Date(e.start_time), selectedDate))
+      ? events.filter(e => {
+          const target = startOfDay(selectedDate);
+          const start = startOfDay(parseISO(e.start_time));
+          const end = startOfDay(parseISO(e.end_time));
+          return target >= start && target <= end;
+        })
       : [];
+    
+    const selectedHoliday = selectedDate ? getHolidayForDate(selectedDate) : null;
     
     return (
       <div className="px-4 py-6 space-y-4">
@@ -279,48 +299,71 @@ export default function CalendarPage() {
           </Button>
         </div>
 
-        {eventsForSelectedDay.length === 0 ? (
+        {!selectedHoliday && eventsForSelectedDay.length === 0 ? (
           <Card className="p-8 text-center border-dashed border-2 bg-muted/20">
             <p className="text-muted-foreground italic">Ni opomnikov za ta dan.</p>
           </Card>
         ) : (
-          eventsForSelectedDay.map((event) => {
-            const catColor = event.category?.color || '#6495ED';
-            return (
-              <Card key={event.id} className="p-4 border-none shadow-sm" style={{ borderLeft: `4px solid ${catColor}` }}>
+          <>
+            {selectedHoliday && (
+              <Card className="p-4 border-none shadow-sm bg-red-50/50" style={{ borderLeft: `4px solid #EF4444` }}>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 w-full">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="font-bold text-foreground text-lg">{event.title}</h3>
+                      <h3 className="font-bold text-red-600 text-lg">{selectedHoliday.name}</h3>
                       <div className="flex gap-2">
-                        <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none" style={{ backgroundColor: `${catColor}15`, color: catColor }}>
-                          {event.category?.name || "Opomnik"}
+                        <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none bg-red-100 text-red-600">
+                          Praznik
                         </Badge>
-                        {event.category?.visibility_level === 'parents' ? (
-                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-purple-50 text-purple-600 border-purple-100">
-                            <Lock className="w-2.5 h-2.5" /> Starši
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-green-50 text-green-600 border-green-100">
-                            <Eye className="w-2.5 h-2.5" /> Vsi
-                          </Badge>
-                        )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-3 mt-3">
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        {event.is_all_day 
-                          ? "Celodnevni dogodek" 
-                          : `${format(parseISO(event.start_time), "HH:mm")} — ${format(parseISO(event.end_time), "HH:mm")}`
-                        }
+                    <div className="flex flex-wrap gap-3 mt-2">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-red-500/80">
+                        Dela prost dan
                       </div>
                     </div>
                   </div>
                 </div>
               </Card>
-            );
-          })
+            )}
+            {eventsForSelectedDay.map((event) => {
+              const catColor = event.category?.color || '#6495ED';
+              return (
+                <Card key={event.id} className="p-4 border-none shadow-sm" style={{ borderLeft: `4px solid ${catColor}` }}>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1 w-full">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 className="font-bold text-foreground text-lg">{event.title}</h3>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none" style={{ backgroundColor: `${catColor}15`, color: catColor }}>
+                            {event.category?.name || "Opomnik"}
+                          </Badge>
+                          {event.category?.visibility_level === 'parents' ? (
+                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-purple-50 text-purple-600 border-purple-100">
+                              <Lock className="w-2.5 h-2.5" /> Starši
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-green-50 text-green-600 border-green-100">
+                              <Eye className="w-2.5 h-2.5" /> Vsi
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-3">
+                        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          {event.is_all_day 
+                            ? "Celodnevni dogodek" 
+                            : `${format(parseISO(event.start_time), "HH:mm")} — ${format(parseISO(event.end_time), "HH:mm")}`
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </>
         )}
       </div>
     );

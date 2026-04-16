@@ -7,10 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Settings, SlidersHorizontal, MoveHorizontal } from "lucide-react";
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, parseISO } from "date-fns";
+import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, parseISO, startOfDay } from "date-fns";
 import { sl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { SupabaseService } from "@/services/supabaseService";
+import { getHolidayForDate } from "@/lib/holidays";
 
 interface Event {
   id: string;
@@ -60,7 +61,12 @@ export default function HomePage() {
   const familyName = session.user?.family_name || "Družina";
 
   const remindersForSelectedDay = selectedDate 
-    ? reminders.filter(r => isSameDay(parseISO(r.start_time), selectedDate))
+    ? reminders.filter(r => {
+        const target = startOfDay(selectedDate);
+        const start = startOfDay(parseISO(r.start_time));
+        const end = startOfDay(parseISO(r.end_time));
+        return target >= start && target <= end;
+      })
     : [];
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -106,6 +112,36 @@ export default function HomePage() {
               onSelect={handleDateSelect}
               locale={sl}
               className="w-full flex justify-center p-0"
+              components={{
+                DayContent: (props) => {
+                  const target = startOfDay(props.date);
+                  const holiday = getHolidayForDate(props.date);
+                  const dayReminders = reminders.filter(r => {
+                    const start = startOfDay(parseISO(r.start_time));
+                    const end = startOfDay(parseISO(r.end_time));
+                    return target >= start && target <= end;
+                  });
+
+                  return (
+                    <div className="relative w-full h-full flex flex-col items-center justify-center">
+                      <span className={cn(holiday && !isSameDay(props.date, new Date()) && "text-red-500 font-bold")}>
+                        {format(props.date, "d")}
+                      </span>
+                      {dayReminders.length > 0 && (
+                        <div className="absolute bottom-1 flex gap-0.5 px-1">
+                          {dayReminders.slice(0, 3).map((r, i) => (
+                            <div 
+                              key={r.id || i} 
+                              className="w-1 h-1 rounded-full" 
+                              style={{ backgroundColor: r.category?.color || '#6495ED' }} 
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              }}
               classNames={{
                 months: "w-full",
                 month: "w-full space-y-4",
@@ -131,32 +167,58 @@ export default function HomePage() {
 
           {/* Navodilo: S klikom na datum se spodaj odprejo opomniki... */}
           <div className="space-y-4">
-            {remindersForSelectedDay.length > 0 ? (
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
-                  Opomniki za {format(selectedDate!, "d. MMMM", { locale: sl })}
-                </h3>
-                {remindersForSelectedDay.map((reminder) => (
-                  <Card key={reminder.id} className="p-6 rounded-[1.5rem] bg-[#EBF3FF] border-[#D1E3FF] shadow-none flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1" style={{ color: reminder.category?.color }}>
-                        {reminder.category?.name || "OPOMNIK"}
-                      </p>
-                      <h3 className={cn("text-lg font-bold text-[#333] mb-1", reminder.completed && "line-through opacity-50")}>
-                        {reminder.title}
-                      </h3>
-                      <p className="text-sm text-[#777] font-medium">
-                        {reminder.is_all_day ? "Celodnevni dogodek" : `Ob ${format(parseISO(reminder.start_time), "HH:mm")}`}
-                      </p>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-muted-foreground text-sm italic">Ni načrtovanih opomnikov.</p>
-              </div>
-            )}
+            {(() => {
+              const selectedHoliday = selectedDate ? getHolidayForDate(selectedDate) : null;
+              const hasContent = selectedHoliday || remindersForSelectedDay.length > 0;
+              
+              if (!hasContent) {
+                return (
+                  <div className="text-center py-10">
+                    <p className="text-muted-foreground text-sm italic">Ni načrtovanih opomnikov.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
+                    Opomniki za {format(selectedDate!, "d. MMMM", { locale: sl })}
+                  </h3>
+                  
+                  {selectedHoliday && (
+                    <Card className="p-6 rounded-[1.5rem] bg-red-50 border-red-100 shadow-none flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1">
+                          PRAZNIK
+                        </p>
+                        <h3 className="text-lg font-bold text-red-700 mb-1">
+                          {selectedHoliday.name}
+                        </h3>
+                        <p className="text-sm text-red-500/80 font-medium">
+                          Dela prost dan
+                        </p>
+                      </div>
+                    </Card>
+                  )}
+
+                  {remindersForSelectedDay.map((reminder) => (
+                    <Card key={reminder.id} className="p-6 rounded-[1.5rem] bg-[#EBF3FF] border-[#D1E3FF] shadow-none flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1" style={{ color: reminder.category?.color }}>
+                          {reminder.category?.name || "OPOMNIK"}
+                        </p>
+                        <h3 className={cn("text-lg font-bold text-[#333] mb-1", reminder.completed && "line-through opacity-50")}>
+                          {reminder.title}
+                        </h3>
+                        <p className="text-sm text-[#777] font-medium">
+                          {reminder.is_all_day ? "Celodnevni dogodek" : `Ob ${format(parseISO(reminder.start_time), "HH:mm")}`}
+                        </p>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
