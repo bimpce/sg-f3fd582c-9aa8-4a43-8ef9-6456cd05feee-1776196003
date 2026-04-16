@@ -248,30 +248,30 @@ export default function MembersSettingsPage() {
 
         <div className="container max-w-2xl mt-6 space-y-6">
           {members.map((member) => (
-            <Card key={member.id} className="p-4 overflow-hidden">
+            <Card key={member.id} className="p-4 overflow-hidden border-transparent bg-background neu-flat">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Avatar className="w-12 h-12">
+                  <Avatar className="w-12 h-12 neu-pressed border-2 border-background">
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {member.name?.charAt(0).toUpperCase() || <UserIcon className="w-6 h-6" />}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-lg">{member.name || "Neznano ime"}</h3>
+                    <h3 className="font-semibold text-lg text-foreground">{member.name || "Neznano ime"}</h3>
                     <p className="text-sm text-muted-foreground">{member.email}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
+                  <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest text-[10px]">
                     {member.role === "super_admin" ? "Super-Admin" : member.role === "parent" ? "Starš" : "Otrok"}
                   </div>
                   {isSuperAdmin && member.id !== session?.user?.id && (
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(member)}>
+                      <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary" onClick={() => openEditDialog(member)}>
                         <Pencil className="w-4 h-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(member)}>
+                      <Button variant="ghost" size="icon" className="hover:bg-destructive/10" onClick={() => openDeleteDialog(member)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
@@ -280,16 +280,16 @@ export default function MembersSettingsPage() {
               </div>
 
               {isSuperAdmin && member.id !== session?.user?.id && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-foreground">
                     <Shield className="w-4 h-4 text-primary" /> Pravice člana
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {PERMISSIONS_LIST.map((perm) => {
                       const isGranted = member.permissions?.some((p: any) => p.permission_name === perm.key && p.granted);
                       return (
-                        <div key={perm.key} className="flex items-center justify-between bg-muted/30 p-2 rounded-lg">
-                          <Label htmlFor={`${member.id}-${perm.key}`} className="text-xs font-normal cursor-pointer">{perm.label}</Label>
+                        <div key={perm.key} className="flex items-center justify-between bg-background neu-pressed p-3 rounded-xl border-transparent">
+                          <Label htmlFor={`${member.id}-${perm.key}`} className="text-xs font-bold uppercase tracking-wide text-muted-foreground cursor-pointer">{perm.label}</Label>
                           <Switch
                             id={`${member.id}-${perm.key}`}
                             checked={isGranted}

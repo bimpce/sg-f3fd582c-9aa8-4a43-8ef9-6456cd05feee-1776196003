@@ -130,7 +130,7 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F9F8F6]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -139,19 +139,19 @@ export default function CategoriesPage() {
   return (
     <>
       <SEO title="Kategorije - FamilySync" />
-      <div className="min-h-screen pb-32 bg-[#F9F8F6]">
-        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#F0F0F0] px-4 py-6">
+      <div className="min-h-screen pb-32 bg-background">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-6">
           <div className="container max-w-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={() => router.push('/reminders')} className="rounded-full">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-2xl font-bold text-[#333]">Kategorije</h1>
+              <h1 className="text-2xl font-bold text-foreground">Kategorije</h1>
             </div>
             
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="rounded-full bg-[#6495ED] hover:bg-[#5484DC]" onClick={handleOpenCreate}>
+                <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleOpenCreate}>
                   <Plus className="w-4 h-4 mr-1" /> Nova
                 </Button>
               </DialogTrigger>
@@ -191,7 +191,7 @@ export default function CategoriesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
                     {isSubmitting ? "Shranjujem..." : "Shrani kategorijo"}
                   </Button>
                 </form>
@@ -202,12 +202,12 @@ export default function CategoriesPage() {
 
         <div className="container max-w-2xl mt-8 px-4 space-y-4">
           {categories.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#DDD]">
-              <p className="text-[#999] font-medium">Nimate še nobene kategorije.</p>
+            <div className="text-center py-16 bg-background neu-pressed rounded-3xl border border-transparent">
+              <p className="text-muted-foreground font-medium">Nimate še nobene kategorije.</p>
             </div>
           ) : (
             categories.map(category => (
-              <Card key={category.id} className="p-4 rounded-2xl border-none shadow-[0_4px_15px_rgba(0,0,0,0.04)] bg-white flex items-center justify-between group overflow-hidden relative">
+              <Card key={category.id} className="p-4 rounded-2xl border-none bg-background neu-flat flex items-center justify-between group overflow-hidden relative">
                 <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: category.color }}></div>
                 <div className="flex items-center gap-4 pl-2">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full shadow-sm flex items-center justify-center text-white" style={{ backgroundColor: category.color }}>
@@ -229,7 +229,7 @@ export default function CategoriesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="text-[#6495ED] hover:text-[#5484DC] hover:bg-[#6495ED]/10" onClick={() => handleOpenEdit(category)}>
+                  <Button variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => handleOpenEdit(category)}>
                     <Pencil className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(category.id)}>
