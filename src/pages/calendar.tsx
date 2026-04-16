@@ -200,7 +200,10 @@ export default function CalendarPage() {
                   <div className="flex flex-wrap gap-3 mt-2">
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      {format(parseISO(event.start_time), "HH:mm")} — {format(parseISO(event.end_time), "HH:mm")}
+                      {event.is_all_day 
+                        ? "Celodnevni" 
+                        : `${format(parseISO(event.start_time), "HH:mm")} — ${format(parseISO(event.end_time), "HH:mm")}`
+                      }
                     </div>
                   </div>
                 </div>

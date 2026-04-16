@@ -147,7 +147,7 @@ export default function HomePage() {
                         {reminder.title}
                       </h3>
                       <p className="text-sm text-[#777] font-medium">
-                        Ob {format(parseISO(reminder.start_time), "HH:mm")}
+                        {reminder.is_all_day ? "Celodnevni dogodek" : `Ob ${format(parseISO(reminder.start_time), "HH:mm")}`}
                       </p>
                     </div>
                   </Card>
@@ -167,7 +167,7 @@ export default function HomePage() {
                       {nextReminder.title}
                     </h3>
                     <p className="text-sm text-[#777] font-medium">
-                      {isToday(parseISO(nextReminder.start_time)) ? "Danes" : format(parseISO(nextReminder.start_time), "eeee", { locale: sl })} ob {format(parseISO(nextReminder.start_time), "HH:mm")}
+                      {isToday(parseISO(nextReminder.start_time)) ? "Danes" : format(parseISO(nextReminder.start_time), "eeee", { locale: sl })} {nextReminder.is_all_day ? "(Celodnevni)" : `ob ${format(parseISO(nextReminder.start_time), "HH:mm")}`}
                     </p>
                   </div>
                 </Card>
