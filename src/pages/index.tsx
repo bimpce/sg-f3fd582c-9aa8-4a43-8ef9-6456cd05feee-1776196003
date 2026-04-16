@@ -145,7 +145,12 @@ export default function HomePage() {
               classNames={{
                 months: "w-full",
                 month: "w-full space-y-4",
-                caption: "flex justify-center pt-1 relative items-center mb-4 hidden", // Skrijemo default caption ker želimo custom
+                caption: "flex justify-center pt-1 relative items-center mb-4", 
+                caption_label: "text-sm font-bold uppercase tracking-widest text-[#6495ED]",
+                nav: "space-x-1 flex items-center",
+                nav_button: "flex items-center justify-center rounded-full w-8 h-8 bg-transparent p-0 text-muted-foreground hover:text-[#6495ED] hover:bg-[#6495ED]/10 transition-colors",
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
                 table: "w-full border-collapse",
                 head_row: "flex w-full mb-2",
                 head_cell: "text-muted-foreground flex-1 font-bold text-[10px] uppercase tracking-widest text-center",
