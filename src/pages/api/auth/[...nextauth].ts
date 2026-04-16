@@ -11,18 +11,24 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Geslo", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Manjkajoči podatki.");
+        if (!credentials?.email || !credentials?.password) return null;
+        const profile = await verifyUser(credentials.email);
+        
+        if (profile) {
+          return {
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            role: profile.role,
+            family_id: profile.family_id,
+            avatar_url: profile.avatar_url,
+            created_at: profile.created_at,
+            updated_at: profile.updated_at,
+            full_name: profile.name,
+            permissions: [] // Add missing required property
+          } as any;
         }
-
-        try {
-          const user = await verifyUser(credentials.email, credentials.password);
-          return user;
-        } catch (error: any) {
-          console.error("Auth error:", error);
-          // Return specific error message to the client
-          throw new Error(error.message || "Prišlo je do neznane napake pri prijavi.");
-        }
+        return null;
       },
     }),
   ],
@@ -46,15 +52,12 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       // Add custom fields from JWT to session
-      if (session.user) {
+      if (token && session.user) {
         session.user.id = token.id;
-        session.user.email = token.email;
-        session.user.name = token.name;
-        session.user.family_id = token.family_id;
         session.user.role = token.role;
-        session.user.permissions = token.permissions;
+        session.user.family_id = token.family_id;
         session.user.family_name = token.family_name;
       }
       return session;
