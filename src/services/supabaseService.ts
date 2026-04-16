@@ -62,7 +62,7 @@ export class SupabaseService {
     return error ? null : data;
   }
 
-  static async createCategory(input: CategoryInsert): Promise<Category | null> {
+  static async createCategory(input: any): Promise<Category | null> {
     const { data, error } = await supabase.from("categories").insert(input).select().single();
     return error ? null : data;
   }
@@ -91,7 +91,7 @@ export class SupabaseService {
     return data;
   }
 
-  static async createReminder(input: ReminderInsert): Promise<Reminder | null> {
+  static async createReminder(input: any): Promise<Reminder | null> {
     const { data, error } = await supabase.from("reminders").insert(input).select().single();
     if (error) {
       console.error("Error creating reminder:", error);
@@ -100,7 +100,7 @@ export class SupabaseService {
     return data;
   }
 
-  static async updateReminder(id: string, input: Partial<ReminderInsert>): Promise<Reminder | null> {
+  static async updateReminder(id: string, input: any): Promise<Reminder | null> {
     const { data, error } = await supabase.from("reminders").update(input).eq("id", id).select().single();
     return error ? null : data;
   }
