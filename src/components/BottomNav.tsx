@@ -29,7 +29,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F0F0F0] py-4 px-6 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border/10 py-4 px-6 z-50 neu-flat rounded-t-[2rem]">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-between">
           {navItems.map((item) => (
@@ -38,7 +38,7 @@ export function BottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-1.5 transition-all",
-                item.active ? "text-[#6495ED]" : "text-[#A0A0A0]"
+                item.active ? "text-primary" : "text-muted-foreground"
               )}
             >
               <item.icon className={cn("w-8 h-8", item.active && "stroke-[2.5px]")} />
@@ -50,7 +50,7 @@ export function BottomNav() {
         </div>
       </div>
       {/* Home indicator bar (iOS style) */}
-      <div className="w-32 h-1.5 bg-[#E0E0E0] rounded-full mx-auto mt-4 opacity-50" />
+      <div className="w-32 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-4" />
     </nav>
   );
 }
