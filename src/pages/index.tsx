@@ -59,7 +59,6 @@ export default function HomePage() {
   const userRole = session.user?.role || "child";
   const familyName = session.user?.family_name || "Družina";
 
-  const nextReminder = reminders.find(r => !r.completed && new Date(r.start_time) >= new Date());
   const remindersForSelectedDay = selectedDate 
     ? reminders.filter(r => isSameDay(parseISO(r.start_time), selectedDate))
     : [];
@@ -152,25 +151,6 @@ export default function HomePage() {
                     </div>
                   </Card>
                 ))}
-              </div>
-            ) : nextReminder ? (
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
-                  Naslednji opomnik
-                </h3>
-                <Card className="p-6 rounded-[2rem] bg-[#EBF3FF] border-[#D1E3FF] border shadow-none relative overflow-hidden">
-                  <div className="relative z-10">
-                    <p className="text-[10px] font-bold text-[#6495ED] uppercase tracking-widest mb-1" style={{ color: nextReminder.category?.color }}>
-                      {nextReminder.category?.name || "OPOMNIK"}
-                    </p>
-                    <h3 className="text-lg font-bold text-[#333] mb-1">
-                      {nextReminder.title}
-                    </h3>
-                    <p className="text-sm text-[#777] font-medium">
-                      {isToday(parseISO(nextReminder.start_time)) ? "Danes" : format(parseISO(nextReminder.start_time), "eeee", { locale: sl })} {nextReminder.is_all_day ? "(Celodnevni)" : `ob ${format(parseISO(nextReminder.start_time), "HH:mm")}`}
-                    </p>
-                  </div>
-                </Card>
               </div>
             ) : (
               <div className="text-center py-10">
