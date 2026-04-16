@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Clock, Trash2, Calendar as CalendarIcon, Tag, Eye, EyeOff, CheckCircle2 } from "lucide-react";
@@ -156,7 +156,12 @@ export default function RemindersPage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Nova kategorija</DialogTitle></DialogHeader>
+                  <DialogHeader>
+                    <DialogTitle>Nova kategorija</DialogTitle>
+                    <DialogDescription>
+                      Ustvarite novo kategorijo za organizacijo vaših opomnikov.
+                    </DialogDescription>
+                  </DialogHeader>
                   <form onSubmit={handleCreateCategory} className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <Label>Naziv kategorije</Label>
@@ -198,7 +203,12 @@ export default function RemindersPage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Nov opomnik</DialogTitle></DialogHeader>
+                  <DialogHeader>
+                    <DialogTitle>Nov opomnik</DialogTitle>
+                    <DialogDescription>
+                      Dodajte nov dogodek ali opomnik v vaš družinski koledar.
+                    </DialogDescription>
+                  </DialogHeader>
                   <form onSubmit={handleCreateReminder} className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <Label>Naziv opomnika</Label>
