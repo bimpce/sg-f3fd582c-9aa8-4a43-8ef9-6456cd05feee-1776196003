@@ -127,18 +127,25 @@ export default function CalendarPage() {
             {format(day, "d")}
           </span>
           <div className="mt-1 space-y-1 overflow-hidden">
-            {dayEvents.slice(0, 3).map((event) => (
-              <div
-                key={event.id}
-                className="text-[10px] px-1 py-0.5 rounded truncate leading-tight flex items-center gap-1"
-                style={{ backgroundColor: (event.category?.color || '#6495ED') + '33', borderLeft: `2px solid ${event.category?.color || '#6495ED'}` }}
-              >
-                {event.category?.visibility_level === 'parents' && <Lock className="w-2 h-2" />}
-                {event.title}
-              </div>
-            ))}
+            {dayEvents.slice(0, 3).map((event) => {
+              const catColor = event.category?.color || '#6495ED';
+              return (
+                <div
+                  key={event.id}
+                  className="text-[10px] px-1.5 py-0.5 rounded truncate leading-tight flex items-center gap-1 font-medium"
+                  style={{ 
+                    backgroundColor: `${catColor}15`, 
+                    color: catColor,
+                    borderLeft: `2px solid ${catColor}` 
+                  }}
+                >
+                  {event.category?.visibility_level === 'parents' && <Lock className="w-2.5 h-2.5 flex-shrink-0" />}
+                  {event.title}
+                </div>
+              );
+            })}
             {dayEvents.length > 3 && (
-              <div className="text-[10px] text-muted-foreground pl-1">
+              <div className="text-[10px] font-medium text-muted-foreground pl-1 mt-1">
                 + {dayEvents.length - 3} več
               </div>
             )}
@@ -181,35 +188,43 @@ export default function CalendarPage() {
             <p className="text-muted-foreground italic">Ni opomnikov za ta dan.</p>
           </Card>
         ) : (
-          eventsForSelectedDay.map((event) => (
-            <Card key={event.id} className="p-4 border-l-4 shadow-sm" style={{ borderLeftColor: event.category?.color || '#6495ED' }}>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground">{event.title}</h3>
-                    {event.category?.visibility_level === 'parents' ? (
-                      <Badge variant="outline" className="text-[10px] py-0 h-4 gap-1">
-                        <Lock className="w-2 h-2" /> Starši
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] py-0 h-4 gap-1 text-[#6495ED] border-[#6495ED]">
-                        <Eye className="w-2 h-2" /> Vsi
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-3 mt-2">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {event.is_all_day 
-                        ? "Celodnevni" 
-                        : `${format(parseISO(event.start_time), "HH:mm")} — ${format(parseISO(event.end_time), "HH:mm")}`
-                      }
+          eventsForSelectedDay.map((event) => {
+            const catColor = event.category?.color || '#6495ED';
+            return (
+              <Card key={event.id} className="p-4 border-none shadow-sm" style={{ borderLeft: `4px solid ${catColor}` }}>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h3 className="font-bold text-foreground text-lg">{event.title}</h3>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 font-bold uppercase tracking-wider border-none" style={{ backgroundColor: `${catColor}15`, color: catColor }}>
+                          {event.category?.name || "Opomnik"}
+                        </Badge>
+                        {event.category?.visibility_level === 'parents' ? (
+                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-purple-50 text-purple-600 border-purple-100">
+                            <Lock className="w-2.5 h-2.5" /> Starši
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] py-0 h-5 gap-1 bg-green-50 text-green-600 border-green-100">
+                            <Eye className="w-2.5 h-2.5" /> Vsi
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        {event.is_all_day 
+                          ? "Celodnevni dogodek" 
+                          : `${format(parseISO(event.start_time), "HH:mm")} — ${format(parseISO(event.end_time), "HH:mm")}`
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))
+              </Card>
+            );
+          })
         )}
       </div>
     );
