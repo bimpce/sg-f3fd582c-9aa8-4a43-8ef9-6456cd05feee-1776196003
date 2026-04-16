@@ -95,13 +95,30 @@ export default function RemindersPage() {
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName.trim() || !session?.user) return;
+    
+    // Safety check for role - only parents and super_admins can create categories
+    const userRole = (session.user as any).role;
+    if (userRole !== 'super_admin' && userRole !== 'parent') {
+      toast({ 
+        title: "Dostop zavrnjen", 
+        description: "Samo starši lahko ustvarjajo kategorije.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      const familyId = (session.user as any).family_id;
+      if (!familyId) {
+        throw new Error("Družinski ID ni najden.");
+      }
+
       const result = await SupabaseService.createCategory({
         name: catName,
         color: catColor,
         visibility_level: catVisibility as any,
-        family_id: session.user.family_id as string
+        family_id: familyId
       });
       if (result) {
         toast({ title: "Kategorija dodana", description: "Nova kategorija je pripravljena." });
