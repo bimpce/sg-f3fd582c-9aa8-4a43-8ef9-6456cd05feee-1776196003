@@ -17,8 +17,8 @@ export function BottomNav() {
     {
       label: "Opomniki",
       icon: CheckSquare,
-      href: "/tasks",
-      active: currentPath === "/tasks",
+      href: "/reminders",
+      active: currentPath === "/reminders",
     },
     {
       label: "Profil",

@@ -170,7 +170,7 @@ export default function CalendarPage() {
           <h2 className="text-lg font-bold">
             {format(selectedDate, "eeee, d. MMMM", { locale: sl })}
           </h2>
-          <Button size="sm" className="rounded-full gap-2" onClick={() => router.push('/tasks')}>
+          <Button size="sm" className="rounded-full gap-2" onClick={() => router.push('/reminders')}>
             <Plus className="w-4 h-4" />
             Dodaj
           </Button>
