@@ -207,14 +207,23 @@ export default function CategoriesPage() {
             </div>
           ) : (
             categories.map(category => (
-              <Card key={category.id} className="p-4 rounded-2xl border-none shadow-[0_4px_15px_rgba(0,0,0,0.04)] bg-white flex items-center justify-between group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full shadow-sm flex items-center justify-center text-white" style={{ backgroundColor: category.color }}>
+              <Card key={category.id} className="p-4 rounded-2xl border-none shadow-[0_4px_15px_rgba(0,0,0,0.04)] bg-white flex items-center justify-between group overflow-hidden relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: category.color }}></div>
+                <div className="flex items-center gap-4 pl-2">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full shadow-sm flex items-center justify-center text-white" style={{ backgroundColor: category.color }}>
                     {category.visibility_level === 'parents' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </div>
                   <div>
-                    <h3 className="font-bold text-[#333] text-lg">{category.name}</h3>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                    <div className="flex items-center gap-2">
+                      <span 
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold"
+                        style={{ backgroundColor: `${category.color}15`, color: category.color, border: `1px solid ${category.color}30` }}
+                      >
+                        <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: category.color }}></span>
+                        {category.name}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1.5 flex items-center gap-1">
                       {category.visibility_level === 'parents' ? 'Samo starši' : 'Vsi člani'}
                     </p>
                   </div>
