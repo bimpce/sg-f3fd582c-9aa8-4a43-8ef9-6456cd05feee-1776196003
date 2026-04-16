@@ -176,7 +176,7 @@ export default function RemindersPage() {
                   <DialogHeader>
                     <DialogTitle>Nova kategorija</DialogTitle>
                     <DialogDescription>
-                      Ustvarite novo kategorijo za organizacijo vaših opomnikov.
+                      Ustvarite novo kategorijo za organizacijo vaših opomnikov. Določite ime, barvo in kdo jo lahko vidi.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateCategory} className="space-y-4 pt-4">
@@ -223,7 +223,7 @@ export default function RemindersPage() {
                   <DialogHeader>
                     <DialogTitle>Nov opomnik</DialogTitle>
                     <DialogDescription>
-                      Dodajte nov dogodek ali opomnik v vaš družinski koledar.
+                      Dodajte nov dogodek ali opomnik v vaš družinski koledar. Izberite časovni okvir in kategorijo.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateReminder} className="space-y-4 pt-4">
