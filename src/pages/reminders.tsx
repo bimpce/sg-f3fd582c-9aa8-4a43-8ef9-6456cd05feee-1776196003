@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, Trash2, Calendar as CalendarIcon, Tag, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Plus, Clock, Trash2, Calendar as CalendarIcon, Tag, Eye, EyeOff, CheckCircle2, Pencil } from "lucide-react";
 import { SupabaseService } from "@/services/supabaseService";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ export default function RemindersPage() {
   
   // Reminder Form
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
@@ -64,6 +65,32 @@ export default function RemindersPage() {
     setLoading(false);
   };
 
+  const resetForm = () => {
+    setEditingReminderId(null);
+    setTitle("");
+    setIsAllDay(false);
+    setStartDate(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+    setEndDate(format(new Date(new Date().getTime() + 3600000), "yyyy-MM-dd'T'HH:mm"));
+    setCategoryId("");
+  };
+
+  const handleEditReminder = (reminder: any) => {
+    setEditingReminderId(reminder.id);
+    setTitle(reminder.title);
+    setIsAllDay(reminder.is_all_day || false);
+    setCategoryId(reminder.category_id || "");
+    
+    if (reminder.is_all_day) {
+      setStartDate(format(new Date(reminder.start_time), "yyyy-MM-dd"));
+      setEndDate(format(new Date(reminder.end_time), "yyyy-MM-dd"));
+    } else {
+      setStartDate(format(new Date(reminder.start_time), "yyyy-MM-dd'T'HH:mm"));
+      setEndDate(format(new Date(reminder.end_time), "yyyy-MM-dd'T'HH:mm"));
+    }
+    
+    setIsReminderOpen(true);
+  };
+
   const handleCreateReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !session?.user) return;
@@ -81,24 +108,39 @@ export default function RemindersPage() {
         endObj.setHours(23, 59, 59, 999);
       }
 
-      const result = await SupabaseService.createReminder({
+      const reminderData = {
         title,
         start_time: startObj.toISOString(),
         end_time: endObj.toISOString(),
         is_all_day: isAllDay,
         category_id: categoryId || null,
-        family_id: session.user.family_id as string,
-        creator_id: session.user.id,
-        completed: false
-      });
-      if (result) {
-        toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
-        setIsReminderOpen(false);
-        setTitle("");
-        setIsAllDay(false);
-        loadData();
+      };
+
+      if (editingReminderId) {
+        const result = await SupabaseService.updateReminder(editingReminderId, reminderData);
+        if (result) {
+          toast({ title: "Opomnik posodobljen", description: "Spremembe so bile uspešno shranjene." });
+          setIsReminderOpen(false);
+          resetForm();
+          loadData();
+        } else {
+          toast({ title: "Napaka", description: "Opomnika ni bilo mogoče posodobiti. Preverite pravice.", variant: "destructive" });
+        }
       } else {
-        toast({ title: "Napaka", description: "Opomnika ni bilo mogoče shraniti. Preverite pravice.", variant: "destructive" });
+        const result = await SupabaseService.createReminder({
+          ...reminderData,
+          family_id: session.user.family_id as string,
+          creator_id: session.user.id,
+          completed: false
+        });
+        if (result) {
+          toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
+          setIsReminderOpen(false);
+          resetForm();
+          loadData();
+        } else {
+          toast({ title: "Napaka", description: "Opomnika ni bilo mogoče shraniti. Preverite pravice.", variant: "destructive" });
+        }
       }
     } catch (err) {
       toast({ title: "Napaka", description: "Prišlo je do nepričakovane napake.", variant: "destructive" });
@@ -190,17 +232,20 @@ export default function RemindersPage() {
                 <Tag className="w-4 h-4 mr-2" /> Kategorije
               </Button>
 
-              <Dialog open={isReminderOpen} onOpenChange={setIsReminderOpen}>
+              <Dialog open={isReminderOpen} onOpenChange={(open) => {
+                if (!open) resetForm();
+                setIsReminderOpen(open);
+              }}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="rounded-full bg-[#6495ED] hover:bg-[#5484DC]">
+                  <Button size="sm" className="rounded-full bg-[#6495ED] hover:bg-[#5484DC]" onClick={resetForm}>
                     <Plus className="w-4 h-4 mr-2" /> Dodaj
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Nov opomnik</DialogTitle>
+                    <DialogTitle>{editingReminderId ? "Uredi opomnik" : "Nov opomnik"}</DialogTitle>
                     <DialogDescription>
-                      Dodajte nov dogodek ali opomnik v vaš družinski koledar. Izberite časovni okvir in kategorijo.
+                      {editingReminderId ? "Posodobite podrobnosti opomnika." : "Dodajte nov dogodek ali opomnik v vaš družinski koledar. Izberite časovni okvir in kategorijo."}
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateReminder} className="space-y-4 pt-4">
@@ -261,7 +306,9 @@ export default function RemindersPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>Ustvari opomnik</Button>
+                    <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>
+                      {editingReminderId ? "Shrani spremembe" : "Ustvari opomnik"}
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -283,12 +330,12 @@ export default function RemindersPage() {
                   <p className="text-[#999] font-medium">Trenutno nimate nobenih opomnikov.</p>
                 </div>
               ) : (
-                activeReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onDelete={handleDeleteReminder} />)
+                activeReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)
               )}
             </TabsContent>
 
             <TabsContent value="completed" className="space-y-4 mt-6">
-              {completedReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onDelete={handleDeleteReminder} />)}
+              {completedReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)}
             </TabsContent>
           </Tabs>
         </div>
@@ -298,7 +345,7 @@ export default function RemindersPage() {
   );
 }
 
-function ReminderCard({ reminder, onToggle, onDelete }: { reminder: any, onToggle: (id: string, s: boolean) => void, onDelete: (id: string) => void }) {
+function ReminderCard({ reminder, onToggle, onEdit, onDelete }: { reminder: any, onToggle: (id: string, s: boolean) => void, onEdit: (r: any) => void, onDelete: (id: string) => void }) {
   const catColor = reminder.category?.color || "#DDD";
   
   return (
@@ -335,9 +382,14 @@ function ReminderCard({ reminder, onToggle, onDelete }: { reminder: any, onToggl
             )}
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="text-[#DDD] hover:text-destructive" onClick={() => onDelete(reminder.id)}>
-          <Trash2 className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="text-[#6495ED] hover:text-[#5484DC] hover:bg-[#6495ED]/10" onClick={() => onEdit(reminder)}>
+            <Pencil className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-[#DDD] hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(reminder.id)}>
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
     </Card>
   );
