@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { LogOut, Save, Copy, Check, Users } from "lucide-react";
 import { SupabaseService } from "@/services/supabaseService";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
@@ -98,9 +99,12 @@ export default function ProfilePage() {
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-4">
           <div className="container max-w-2xl flex items-center justify-between">
             <h1 className="text-xl font-bold">Moj Profil</h1>
-            <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-              <LogOut className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeSwitch />
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
