@@ -6,6 +6,12 @@ import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -13,8 +19,7 @@ import {
   Calendar as CalendarIcon, 
   Eye, 
   Lock,
-  Clock,
-  MapPin
+  Clock
 } from "lucide-react";
 import { 
   format, 
@@ -26,7 +31,6 @@ import {
   endOfWeek, 
   isSameMonth, 
   isSameDay, 
-  addDays, 
   eachDayOfInterval,
   parseISO
 } from "date-fns";
@@ -37,10 +41,22 @@ import { cn } from "@/lib/utils";
 export default function CalendarPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
+  
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal state
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+  const [endDate, setEndDate] = useState(format(new Date(new Date().getTime() + 3600000), "yyyy-MM-dd'T'HH:mm"));
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -52,11 +68,71 @@ export default function CalendarPage() {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const data = await SupabaseService.getReminders(session?.user?.family_id as string);
-    if (data) {
-      setEvents(data);
-    }
+    const familyId = session?.user?.family_id as string;
+    const [fetchedReminders, fetchedCategories] = await Promise.all([
+      SupabaseService.getReminders(familyId),
+      SupabaseService.getCategories(familyId),
+    ]);
+    if (fetchedReminders) setEvents(fetchedReminders);
+    if (fetchedCategories) setCategories(fetchedCategories);
     setLoading(false);
+  };
+
+  const openCreateModal = (day: Date) => {
+    setSelectedDate(day);
+    setTitle("");
+    setIsAllDay(false);
+    
+    const start = new Date(day);
+    start.setHours(12, 0, 0, 0);
+    setStartDate(format(start, "yyyy-MM-dd'T'HH:mm"));
+    
+    const end = new Date(day);
+    end.setHours(13, 0, 0, 0);
+    setEndDate(format(end, "yyyy-MM-dd'T'HH:mm"));
+    
+    setCategoryId("");
+    setIsReminderOpen(true);
+  };
+
+  const handleCreateReminder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !session?.user) return;
+    setIsSubmitting(true);
+    try {
+      let startObj = new Date(startDate);
+      let endObj = new Date(endDate);
+      
+      if (isAllDay) {
+        startObj = new Date(startDate);
+        startObj.setHours(0, 0, 0, 0);
+        endObj = new Date(endDate);
+        endObj.setHours(23, 59, 59, 999);
+      }
+
+      const result = await SupabaseService.createReminder({
+        title,
+        start_time: startObj.toISOString(),
+        end_time: endObj.toISOString(),
+        is_all_day: isAllDay,
+        category_id: categoryId || null,
+        family_id: session.user.family_id as string,
+        creator_id: session.user.id,
+        completed: false
+      });
+      
+      if (result) {
+        toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
+        setIsReminderOpen(false);
+        fetchEvents();
+      } else {
+        toast({ title: "Napaka", description: "Opomnika ni bilo mogoče shraniti.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Napaka", description: "Prišlo je do nepričakovane napake.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -99,10 +175,10 @@ export default function CalendarPage() {
   const renderCells = () => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    const startDateCal = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const endDateCal = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+    const calendarDays = eachDayOfInterval({ start: startDateCal, end: endDateCal });
     const rows = [];
     let days = [];
 
@@ -113,19 +189,32 @@ export default function CalendarPage() {
         <div
           key={day.toString()}
           className={cn(
-            "min-h-[80px] border-r border-b border-border p-1 transition-colors relative",
-            !isSameMonth(day, monthStart) ? "bg-muted/10 text-muted-foreground/50" : "bg-card",
+            "min-h-[80px] border-r border-b border-border p-1 transition-colors relative flex flex-col cursor-pointer group",
+            !isSameMonth(day, monthStart) ? "bg-muted/10 text-muted-foreground/50" : "bg-card hover:bg-muted/20",
             isSameDay(day, new Date()) && "bg-primary/5",
             isSameDay(day, selectedDate) && "ring-2 ring-primary ring-inset z-10"
           )}
           onClick={() => setSelectedDate(day)}
+          onDoubleClick={() => openCreateModal(day)}
         >
-          <span className={cn(
-            "text-xs font-semibold ml-1 mt-1 block h-5 w-5 flex items-center justify-center rounded-full",
-            isSameDay(day, new Date()) && "bg-primary text-white"
-          )}>
-            {format(day, "d")}
-          </span>
+          <div className="flex justify-between items-start">
+            <span className={cn(
+              "text-xs font-semibold ml-1 mt-1 h-5 w-5 flex items-center justify-center rounded-full",
+              isSameDay(day, new Date()) && "bg-primary text-white"
+            )}>
+              {format(day, "d")}
+            </span>
+            <span 
+              className="opacity-0 md:group-hover:opacity-100 text-primary p-1 rounded-full hover:bg-primary/10 transition-opacity z-20"
+              onClick={(e) => {
+                e.stopPropagation();
+                openCreateModal(day);
+              }}
+              title="Dodaj opomnik"
+            >
+              <Plus className="w-3 h-3" />
+            </span>
+          </div>
           <div className="mt-1 space-y-1 overflow-hidden">
             {dayEvents.slice(0, 3).map((event) => {
               const catColor = event.category?.color || '#6495ED';
@@ -150,6 +239,13 @@ export default function CalendarPage() {
               </div>
             )}
           </div>
+          <div 
+            className="flex-1 min-h-[16px]" 
+            onClick={(e) => {
+              e.stopPropagation();
+              openCreateModal(day);
+            }} 
+          />
         </div>
       );
 
@@ -177,7 +273,7 @@ export default function CalendarPage() {
           <h2 className="text-lg font-bold">
             {format(selectedDate, "eeee, d. MMMM", { locale: sl })}
           </h2>
-          <Button size="sm" className="rounded-full gap-2" onClick={() => router.push('/reminders')}>
+          <Button size="sm" className="rounded-full gap-2" onClick={() => openCreateModal(selectedDate)}>
             <Plus className="w-4 h-4" />
             Dodaj
           </Button>
@@ -251,6 +347,80 @@ export default function CalendarPage() {
           {renderSelectedDayEvents()}
         </div>
       </div>
+
+      <Dialog open={isReminderOpen} onOpenChange={setIsReminderOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nov opomnik</DialogTitle>
+            <DialogDescription>
+              Dodajte nov dogodek ali opomnik na izbrani dan ({format(selectedDate, "d. MMMM yyyy", { locale: sl })}).
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateReminder} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Naziv opomnika</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Kaj se dogaja?" required />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="all-day-cal" 
+                checked={isAllDay} 
+                onCheckedChange={(checked) => {
+                  setIsAllDay(checked === true);
+                  if (checked) {
+                    setStartDate(format(new Date(startDate), "yyyy-MM-dd"));
+                    setEndDate(format(new Date(endDate), "yyyy-MM-dd"));
+                  } else {
+                    setStartDate(format(new Date(startDate), "yyyy-MM-dd'T'HH:mm"));
+                    setEndDate(format(new Date(endDate), "yyyy-MM-dd'T'HH:mm"));
+                  }
+                }} 
+              />
+              <Label htmlFor="all-day-cal" className="font-medium cursor-pointer">Celotni dan</Label>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Začetek (Od)</Label>
+                <Input 
+                  type={isAllDay ? "date" : "datetime-local"} 
+                  value={startDate} 
+                  onChange={(e) => setStartDate(e.target.value)} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Konec (Do)</Label>
+                <Input 
+                  type={isAllDay ? "date" : "datetime-local"} 
+                  value={endDate} 
+                  onChange={(e) => setEndDate(e.target.value)} 
+                  required 
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Kategorija</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger><SelectValue placeholder="Izberi kategorijo" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>
+              Ustvari opomnik
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <BottomNav />
     </>
   );
