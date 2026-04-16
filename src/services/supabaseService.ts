@@ -71,6 +71,15 @@ export class SupabaseService {
     return data;
   }
 
+  static async updateCategory(id: string, input: any): Promise<Category | null> {
+    const { data, error } = await supabase.from("categories").update(input).eq("id", id).select().single();
+    if (error) {
+      console.error("Error updating category:", error);
+      return null;
+    }
+    return data;
+  }
+
   static async deleteCategory(categoryId: string): Promise<boolean> {
     const { error } = await supabase.from("categories").delete().eq("id", categoryId);
     return !error;

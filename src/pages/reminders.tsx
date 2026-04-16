@@ -166,52 +166,14 @@ export default function RemindersPage() {
           <div className="container max-w-2xl flex items-center justify-between">
             <h1 className="text-2xl font-bold text-[#333]">Opomniki</h1>
             <div className="flex gap-2">
-              <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-full border-[#6495ED] text-[#6495ED] hover:bg-[#6495ED]/10">
-                    <Tag className="w-4 h-4 mr-2" /> Kategorije
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Nova kategorija</DialogTitle>
-                    <DialogDescription>
-                      Ustvarite novo kategorijo za organizacijo vaših opomnikov. Določite ime, barvo in kdo jo lahko vidi.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateCategory} className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label>Naziv kategorije</Label>
-                      <Input value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Npr. Šola, Treningi..." required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Barva kategorije</Label>
-                      <div className="flex gap-2 flex-wrap">
-                        {["#6495ED", "#FF6B6B", "#4ECDC4", "#FFD93D", "#9B59B6", "#2ECC71"].map(color => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={cn("w-10 h-10 rounded-full border-2 transition-all", catColor === color ? "border-black scale-110" : "border-transparent")}
-                            style={{ backgroundColor: color }}
-                            onClick={() => setCatColor(color)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Kdo lahko vidi?</Label>
-                      <Select value={catVisibility} onValueChange={setCatVisibility}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Vsi družinski člani</SelectItem>
-                          <SelectItem value="parents">Samo starši</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button type="submit" className="w-full bg-[#6495ED] hover:bg-[#5484DC]" disabled={isSubmitting}>Shrani kategorijo</Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-full border-[#6495ED] text-[#6495ED] hover:bg-[#6495ED]/10"
+                onClick={() => router.push('/categories')}
+              >
+                <Tag className="w-4 h-4 mr-2" /> Kategorije
+              </Button>
 
               <Dialog open={isReminderOpen} onOpenChange={setIsReminderOpen}>
                 <DialogTrigger asChild>
