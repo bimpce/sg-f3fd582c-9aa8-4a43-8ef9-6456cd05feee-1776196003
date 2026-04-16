@@ -31,6 +31,7 @@ export default function RemindersPage() {
   // Reminder Form
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [endDate, setEndDate] = useState(format(new Date(new Date().getTime() + 3600000), "yyyy-MM-dd'T'HH:mm"));
   const [categoryId, setCategoryId] = useState<string>("");
@@ -68,10 +69,23 @@ export default function RemindersPage() {
     if (!title.trim() || !session?.user) return;
     setIsSubmitting(true);
     try {
+      let startObj = new Date(startDate);
+      let endObj = new Date(endDate);
+      
+      if (isAllDay) {
+        // If it's just a date string (YYYY-MM-DD), make it start/end of day
+        startObj = new Date(startDate);
+        startObj.setHours(0, 0, 0, 0);
+        
+        endObj = new Date(endDate);
+        endObj.setHours(23, 59, 59, 999);
+      }
+
       const result = await SupabaseService.createReminder({
         title,
-        start_time: new Date(startDate).toISOString(),
-        end_time: new Date(endDate).toISOString(),
+        start_time: startObj.toISOString(),
+        end_time: endObj.toISOString(),
+        is_all_day: isAllDay,
         category_id: categoryId || null,
         family_id: session.user.family_id as string,
         creator_id: session.user.id,
@@ -81,6 +95,7 @@ export default function RemindersPage() {
         toast({ title: "Opomnik dodan", description: "Vaš novi opomnik je bil uspešno shranjen." });
         setIsReminderOpen(false);
         setTitle("");
+        setIsAllDay(false);
         loadData();
       } else {
         toast({ title: "Napaka", description: "Opomnika ni bilo mogoče shraniti. Preverite pravice.", variant: "destructive" });
@@ -193,14 +208,41 @@ export default function RemindersPage() {
                       <Label>Naziv opomnika</Label>
                       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Kaj se dogaja?" required />
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="all-day" 
+                        checked={isAllDay} 
+                        onCheckedChange={(checked) => {
+                          setIsAllDay(checked === true);
+                          if (checked) {
+                            setStartDate(format(new Date(startDate), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(endDate), "yyyy-MM-dd"));
+                          } else {
+                            setStartDate(format(new Date(startDate), "yyyy-MM-dd'T'HH:mm"));
+                            setEndDate(format(new Date(endDate), "yyyy-MM-dd'T'HH:mm"));
+                          }
+                        }} 
+                      />
+                      <Label htmlFor="all-day" className="font-medium cursor-pointer">Celotni dan</Label>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Začetek (Od)</Label>
-                        <Input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                        <Input 
+                          type={isAllDay ? "date" : "datetime-local"} 
+                          value={startDate} 
+                          onChange={(e) => setStartDate(e.target.value)} 
+                          required 
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Konec (Do)</Label>
-                        <Input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                        <Input 
+                          type={isAllDay ? "date" : "datetime-local"} 
+                          value={endDate} 
+                          onChange={(e) => setEndDate(e.target.value)} 
+                          required 
+                        />
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -279,7 +321,12 @@ function ReminderCard({ reminder, onToggle, onDelete }: { reminder: any, onToggl
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-xs text-[#888] font-medium">
               <Clock className="w-3.5 h-3.5" />
-              <span>{format(new Date(reminder.start_time), "d. MMM 'ob' HH:mm", { locale: sl })} — {format(new Date(reminder.end_time), "HH:mm", { locale: sl })}</span>
+              <span>
+                {reminder.is_all_day 
+                  ? format(new Date(reminder.start_time), "d. MMMM yyyy", { locale: sl }) + " (Celodnevni)"
+                  : `${format(new Date(reminder.start_time), "d. MMM 'ob' HH:mm", { locale: sl })} — ${format(new Date(reminder.end_time), "HH:mm", { locale: sl })}`
+                }
+              </span>
             </div>
             {reminder.category?.visibility_level === 'parents' && (
               <div className="flex items-center gap-1 text-[10px] text-[#9333EA] font-bold uppercase">

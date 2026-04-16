@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -236,6 +236,7 @@ export type Database = {
           end_time: string
           family_id: string
           id: string
+          is_all_day: boolean | null
           start_time: string
           title: string
           updated_at: string | null
@@ -249,6 +250,7 @@ export type Database = {
           end_time: string
           family_id: string
           id?: string
+          is_all_day?: boolean | null
           start_time: string
           title: string
           updated_at?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           end_time?: string
           family_id?: string
           id?: string
+          is_all_day?: boolean | null
           start_time?: string
           title?: string
           updated_at?: string | null
