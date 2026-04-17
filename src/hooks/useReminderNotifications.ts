@@ -26,7 +26,7 @@ export function useReminderNotifications(
     const now = new Date();
 
     for (const reminder of reminders) {
-      if (!reminder.start_time || reminder.is_completed) continue;
+      if (!reminder.start_time || reminder.completed) continue;
 
       const reminderTime = new Date(reminder.start_time);
       const diffMs = reminderTime.getTime() - now.getTime();

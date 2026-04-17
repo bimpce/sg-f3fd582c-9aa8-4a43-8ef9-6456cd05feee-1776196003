@@ -11,5 +11,14 @@ export type Tables<T extends keyof Database['public']['Tables']> = Database['pub
 export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 export type Functions<T extends keyof Database['public']['Functions']> = Database['public']['Functions'][T];
 
+// Convenience exports for common tables
+export type Reminder = Tables<'reminders'>;
+export type Event = Tables<'events'>;
+export type Category = Tables<'categories'>;
+export type Profile = Tables<'profiles'>;
+export type Family = Tables<'families'>;
+export type Task = Tables<'tasks'>;
+export type Permission = Tables<'permissions'>;
+
 // Project reference: mfsihondmtkzbiquwbqm
 // Last updated: 2026-04-16T12:13:50.733026

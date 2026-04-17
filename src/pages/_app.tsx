@@ -16,7 +16,7 @@ function NotificationProvider({ children }: { children: React.ReactNode }) {
       const { data } = await supabase
         .from("reminders")
         .select("*")
-        .eq("is_completed", false)
+        .eq("completed", false)
         .gte("end_time", new Date().toISOString())
         .order("start_time", { ascending: true });
 
