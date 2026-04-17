@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, Trash2, Calendar as CalendarIcon, Tag, Eye, EyeOff, CheckCircle2, Pencil } from "lucide-react";
+import { Plus, Clock, Trash2, Calendar as CalendarIcon, Tag, Eye, EyeOff, CheckCircle2, Pencil, CalendarDays } from "lucide-react";
 import { SupabaseService } from "@/services/supabaseService";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -325,9 +325,19 @@ export default function RemindersPage() {
 
             <TabsContent value="active" className="space-y-4 mt-6">
               {activeReminders.length === 0 ? (
-                <div className="text-center py-16 bg-background neu-pressed rounded-3xl border-transparent">
-                  <CheckCircle2 className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-                  <p className="text-muted-foreground font-medium">Trenutno nimate nobenih opomnikov.</p>
+                <div className="text-center py-20 px-8 bg-background neu-pressed rounded-[1.5rem] border-transparent">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CalendarDays className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-2">Vse je v redu! 🎉</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6 leading-relaxed">Trenutno nimate aktivnih opomnikov. Ustvarite prvega s klikom na gumb "Dodaj".</p>
+                  <Button 
+                    size="sm" 
+                    className="rounded-full bg-primary hover:bg-primary/90"
+                    onClick={() => setIsReminderOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Dodaj opomnik
+                  </Button>
                 </div>
               ) : (
                 activeReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)
@@ -335,7 +345,17 @@ export default function RemindersPage() {
             </TabsContent>
 
             <TabsContent value="completed" className="space-y-4 mt-6">
-              {completedReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)}
+              {completedReminders.length === 0 ? (
+                <div className="text-center py-20 px-8 bg-background neu-pressed rounded-[1.5rem] border-transparent">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-12 h-12 text-accent/40" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-2">Še opravil za prikaz</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">Ko boste označili opomnike kot opravljene, se bodo pojavili tukaj.</p>
+                </div>
+              ) : (
+                completedReminders.map(r => <ReminderCard key={r.id} reminder={r} onToggle={handleToggleComplete} onEdit={handleEditReminder} onDelete={handleDeleteReminder} />)
+              )}
             </TabsContent>
           </Tabs>
         </div>
