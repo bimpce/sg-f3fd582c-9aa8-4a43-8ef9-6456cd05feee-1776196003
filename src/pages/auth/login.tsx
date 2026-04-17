@@ -96,13 +96,6 @@ export default function LoginPage() {
                   disabled={isLoading}
                 />
               </div>
-
-              <div className="bg-background neu-pressed rounded-xl p-4 text-sm space-y-1.5 mt-6 border-transparent">
-                <p className="font-bold text-muted-foreground text-xs uppercase tracking-widest mb-2">Demo računi:</p>
-                <p className="text-xs text-foreground"><strong>Super-Admin:</strong> <span className="text-primary">super@family.com</span> / demo123</p>
-                <p className="text-xs text-foreground"><strong>Starš:</strong> <span className="text-primary">parent@family.com</span> / demo123</p>
-                <p className="text-xs text-foreground"><strong>Otrok:</strong> <span className="text-primary">child@family.com</span> / demo123</p>
-              </div>
             </CardContent>
 
             <CardFooter className="flex flex-col gap-4 pt-6">
