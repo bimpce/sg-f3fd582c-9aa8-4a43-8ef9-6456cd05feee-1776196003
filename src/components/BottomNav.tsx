@@ -49,8 +49,8 @@ export function BottomNav() {
           ))}
         </div>
       </div>
-      {/* Home indicator bar (iOS style) */}
-      <div className="w-32 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-4" />
+      {/* Home indicator bar (iOS style) - REMOVING THIS ELEMENT */}
+      {/* <div className="w-32 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-4" /> */}
     </nav>
   );
 }
