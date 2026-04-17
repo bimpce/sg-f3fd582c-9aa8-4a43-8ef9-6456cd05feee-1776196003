@@ -1,6 +1,6 @@
 ---
 title: "Sistem obvestil za bližajoče se opomnike"
-status: in_progress
+status: done
 priority: high
 type: feature
 tags: [notifications, reminders, toast]
@@ -13,9 +13,9 @@ position: 19
 Implementiraj sistem, ki avtomatsko prikaže obvestila (toast), ko se opomnik bliža. Uporabi obstoječi toast sistem iz shadcn/ui. Sistem mora delovati globalno (ne samo na strani opomnikov).
 
 ## Checklist
-- [ ] Ustvari `src/hooks/useReminderNotifications.ts` - hook za preverjanje bližajočih se opomnikov
-- [ ] Hook naj preverja vsako minuto (interval) aktivne opomnike
-- [ ] Prikaži toast obvestilo: 15 min pred, 5 min pred, in ob času opomnika
-- [ ] Izogibaj se podvojenim obvestilom (sledi že obveščenim ID-jem)
-- [ ] Integriraj v `_app.tsx` globalno, da deluje na vseh straneh
-- [ ] Preveri napake
+- [x] Ustvari `src/hooks/useReminderNotifications.ts` - hook za preverjanje bližajočih se opomnikov
+- [x] Hook naj preverja vsako minuto (interval) aktivne opomnike
+- [x] Prikaži toast obvestilo: 15 min pred, 5 min pred, in ob času opomnika
+- [x] Izogibaj se podvojenim obvestilom (sledi že obveščenim ID-jem)
+- [x] Integriraj v `_app.tsx` globalno, da deluje na vseh straneh
+- [x] Preveri napake
