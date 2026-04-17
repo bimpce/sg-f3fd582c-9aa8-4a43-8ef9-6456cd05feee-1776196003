@@ -371,10 +371,27 @@ function ReminderCard({ reminder, onToggle, onEdit, onDelete }: { reminder: any,
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <Clock className="w-3.5 h-3.5" />
               <span>
-                {reminder.is_all_day 
-                  ? format(new Date(reminder.start_time), "d. MMMM yyyy", { locale: sl }) + " (Celodnevni)"
-                  : `${format(new Date(reminder.start_time), "d. MMM 'ob' HH:mm", { locale: sl })} — ${format(new Date(reminder.end_time), "HH:mm", { locale: sl })}`
-                }
+                {(() => {
+                  const start = new Date(reminder.start_time);
+                  const end = new Date(reminder.end_time);
+                  const isMultiDay = !reminder.is_all_day && 
+                    (start.toDateString() !== end.toDateString());
+                  
+                  if (reminder.is_all_day) {
+                    const startStr = format(start, "d. MMMM yyyy", { locale: sl });
+                    const endStr = format(end, "d. MMMM yyyy", { locale: sl });
+                    if (startStr === endStr) {
+                      return `${startStr} (Celodnevni)`;
+                    }
+                    return `${startStr} — ${endStr} (Celodnevni)`;
+                  }
+                  
+                  if (isMultiDay) {
+                    return `${format(start, "d. MMM 'ob' HH:mm", { locale: sl })} — ${format(end, "d. MMM 'ob' HH:mm", { locale: sl })}`;
+                  }
+                  
+                  return `${format(start, "d. MMM 'ob' HH:mm", { locale: sl })} — ${format(end, "HH:mm", { locale: sl })}`;
+                })()}
               </span>
             </div>
             {reminder.category?.visibility_level === 'parents' && (
