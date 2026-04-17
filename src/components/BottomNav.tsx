@@ -41,8 +41,8 @@ export function BottomNav() {
                 item.active ? "text-primary" : "text-muted-foreground"
               )}
             >
-              <item.icon className={cn("w-8 h-8", item.active && "stroke-[2.5px]")} />
-              <span className={cn("text-xs font-bold", item.active ? "opacity-100" : "opacity-80")}>
+              <item.icon className={cn("w-7 h-7", item.active && "stroke-[2.5px]")} />
+              <span className={cn("text-xs font-medium", item.active ? "opacity-100" : "opacity-80")}>
                 {item.label}
               </span>
             </Link>
